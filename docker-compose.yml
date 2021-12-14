@@ -1,0 +1,17 @@
+version: '3.1'
+
+services:
+    database_dev:
+        container_name: todo_dev
+        image: postgres
+        restart: always
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=database
+        ports:
+            - "5432:5432"
+        volumes:
+            - ./ops/database:/docker-entrypoint-initdb.d
+
+      
