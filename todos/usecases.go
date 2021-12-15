@@ -9,7 +9,7 @@ type TodoUsecase interface {
 	CreateTodo(title, description string, statusTodoId int64) (todo *Todo, usecaseErr error, serverErr error)
 	UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error)
 	// DeleteTodo(todoID int64) (usecaseErr error, serverErr error)
-	// GetTodo(todoID int64) (todo *Todo, usecaseErr error, serverErr error)
+	GetTodo(todoID int64) (todo *Todo, usecaseErr error, serverErr error)
 	GetAllTodo() (todos []*Todo, usecaseErr error, serverErr error)
 
 	// GetImageTodo(todoID int64) (image *bytes.Buffer, serverErr error)
@@ -28,6 +28,7 @@ var (
 	ErrStatusTodoAlreadyExists = errors.New("status todo already exists")
 	ErrStatusTodoIdNegative    = errors.New("status todo id should to be positive")
 	ErrTodoNotFound            = errors.New("todo not found")
+	ErrTodoIdIsNegative        = errors.New("todo id should be positive")
 )
 
 type DBTodoUsecase struct {
@@ -99,6 +100,15 @@ func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string
 		serverErr = err
 		return
 	}
+	return
+}
+
+func (usecase *DBTodoUsecase) GetTodo(todoID int64) (todo *Todo, usecaseErr error, serverErr error) {
+	if todoID <= 0 {
+		usecaseErr = ErrTodoIdIsNegative
+		return
+	}
+	todo, serverErr = usecase.todoRepository.GetTodo(todoID)
 	return
 }
 
