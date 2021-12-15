@@ -4,7 +4,9 @@ import (
 	"api/database"
 	"api/env"
 	"api/todos"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,6 +33,20 @@ func main() {
 
 	// routers
 	router := gin.Default()
+
+	//cors
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "PUT", "PATCH"},
+		AllowHeaders:     []string{"*"},
+		ExposeHeaders:    []string{"*"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return true
+		},
+		MaxAge: 12 * time.Hour,
+	}))
+
 	{
 		// todos
 		repo := todos.NewTodoRepository(db)
