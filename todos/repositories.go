@@ -9,7 +9,7 @@ import (
 type TodoRepository interface {
 	InsertTodo(title, description string, statusID int64) (*Todo, error)
 	UpdateTodo(todoID int64, title, description string, statusTodoId int64) error
-	// DeleteTodo(todoID int64) error
+	DeleteTodo(todoID int64) error
 	GetTodo(todoID int64) (*Todo, error)
 	GetAllTodo() ([]*Todo, error)
 
@@ -18,6 +18,7 @@ type TodoRepository interface {
 	// DeleteImageTodo(todoID int64) error
 
 	InsertStatusTodo(name string) (*StatusTodo, error)
+	UpdateStatusTodo(id int64, name string) error
 	GetStatusTodo(statusID int64) (*StatusTodo, error)
 	GetStatusTodoByName(name string) (*StatusTodo, error)
 }
@@ -65,10 +66,16 @@ func (repo *TodoRepositoryPG) UpdateTodo(todoID int64, title, description string
 	`
 	args := []interface{}{todoID, title, description, statusTodoId, now}
 	_, err := repo.db.Exec(sqlUpdate, args...)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
+}
+
+func (repo *TodoRepositoryPG) DeleteTodo(todoID int64) error {
+	sqlDelete := `
+		DELETE FROM todos.todo
+		WHERE id=$1;
+	`
+	_, err := repo.db.Exec(sqlDelete, todoID)
+	return err
 }
 
 func (repo *TodoRepositoryPG) GetTodo(todoID int64) (*Todo, error) {
@@ -134,6 +141,17 @@ func (repo *TodoRepositoryPG) InsertStatusTodo(name string) (*StatusTodo, error)
 	)
 	statusTodo.Name = name
 	return &statusTodo, nil
+}
+
+func (repo *TodoRepositoryPG) UpdateStatusTodo(id int64, name string) error {
+	sqlUpdate := `
+		UPDATE todos.todo_status
+		SET name=$2
+		WHERE id=$1;; 
+	`
+	args := []interface{}{id, name}
+	_, error := repo.db.Exec(sqlUpdate, args...)
+	return error
 }
 
 func (repo *TodoRepositoryPG) GetStatusTodo(statusID int64) (*StatusTodo, error) {

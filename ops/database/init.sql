@@ -19,4 +19,6 @@ CREATE TABLE IF NOT EXISTS todos.todo (
   PRIMARY KEY (id),
   FOREIGN KEY (tstts_id) 
   	REFERENCES todos.todo_status(id)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
 );

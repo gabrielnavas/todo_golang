@@ -20,6 +20,7 @@ type TodoController interface {
 	DeleteImageTodo() func(c *gin.Context)
 
 	CreateStatusTodo() func(c *gin.Context)
+	UpdateStatusTodo() func(c *gin.Context)
 	GetStatusTodo() func(c *gin.Context)
 }
 
@@ -121,7 +122,29 @@ func (controller *TodoControllerGin) UpdateTodo() func(c *gin.Context) {
 
 func (controller *TodoControllerGin) DeleteTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		c.JSON(http.StatusNotImplemented, gin.H{"message": "server error"})
+		idStr, hasId := c.Params.Get("id")
+		if !hasId {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id on url param"})
+			return
+		}
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id integer on url param"})
+			return
+		}
+
+		usecaseErr, serverErr := controller.todoUsecase.DeleteTodo(id)
+		if serverErr != nil {
+			fmt.Println(serverErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		if usecaseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
+			return
+		}
+
+		c.JSON(http.StatusNoContent, nil)
 	}
 }
 
@@ -198,6 +221,42 @@ func (controller *TodoControllerGin) CreateStatusTodo() func(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusCreated, statusTodoCreated)
+	}
+}
+
+func (controller *TodoControllerGin) UpdateStatusTodo() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		idStr, hasId := c.Params.Get("id")
+		if !hasId {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing status todo id on url param"})
+			return
+		}
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing status todo id integer on url param"})
+			return
+		}
+
+		var body CreateStatusTodoBody
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})
+			return
+		}
+
+		body.ProcessData()
+
+		usecaseErr, serverErr := controller.todoUsecase.UpdateStatusTodo(id, body.Name)
+		if serverErr != nil {
+			fmt.Println(serverErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		if usecaseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
+			return
+		}
+
+		c.JSON(http.StatusNoContent, nil)
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 type TodoUsecase interface {
 	CreateTodo(title, description string, statusTodoId int64) (todo *Todo, usecaseErr error, serverErr error)
 	UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error)
-	// DeleteTodo(todoID int64) (usecaseErr error, serverErr error)
+	DeleteTodo(todoID int64) (usecaseErr error, serverErr error)
 	GetTodo(todoID int64) (todo *Todo, usecaseErr error, serverErr error)
 	GetAllTodo() (todos []*Todo, usecaseErr error, serverErr error)
 
@@ -17,6 +17,7 @@ type TodoUsecase interface {
 	// DeleteImageTodo(todoID int64) (usecaseErr error, serverErr error)
 
 	CreateStatusTodo(name string) (statusTodo *StatusTodo, usecaseErr error, serverErr error)
+	UpdateStatusTodo(statusTodoId int64, name string) (usecaseErr error, serverErr error)
 	GetStatusTodo(id int64) (statusTodo *StatusTodo, usecaseErr error, serverErr error)
 }
 
@@ -73,6 +74,16 @@ func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId
 }
 
 func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error) {
+	if statusTodoId <= 0 {
+		usecaseErr = ErrStatusTodoIdNegative
+		return
+	}
+
+	if todoID <= 0 {
+		usecaseErr = ErrTodoIdIsNegative
+		return
+	}
+
 	statusFound, usecaseErr, serverErr := usecase.GetStatusTodo(statusTodoId)
 	if serverErr != nil {
 		return
@@ -100,6 +111,24 @@ func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string
 		serverErr = err
 		return
 	}
+	return
+}
+
+func (usecase *DBTodoUsecase) DeleteTodo(todoID int64) (usecaseErr error, serverErr error) {
+	if todoID <= 0 {
+		usecaseErr = ErrTodoIdIsNegative
+		return
+	}
+
+	todoFound, usecaseErr, serverErr := usecase.GetTodo(todoID)
+	if usecaseErr != nil || serverErr != nil {
+		return
+	}
+	if todoFound == nil {
+		usecaseErr = ErrTodoNotFound
+		return
+	}
+	serverErr = usecase.todoRepository.DeleteTodo(todoID)
 	return
 }
 
@@ -140,6 +169,38 @@ func (usecase *DBTodoUsecase) CreateStatusTodo(name string) (statusTodo *StatusT
 		serverErr = err
 		return
 	}
+	return
+}
+
+func (usecase *DBTodoUsecase) UpdateStatusTodo(statusTodoId int64, name string) (usecaseErr error, serverErr error) {
+	if statusTodoId <= 0 {
+		usecaseErr = ErrStatusTodoIdNegative
+		return
+	}
+
+	statusTodoFound, usecaseErr, serverErr := usecase.GetStatusTodo(statusTodoId)
+	if usecaseErr != nil || serverErr != nil {
+		return
+	}
+	if statusTodoFound == nil {
+		usecaseErr = ErrStatusTodoNotFound
+		return
+	}
+
+	// tratar nomes iguais
+	nameLower := strings.ToLower(name)
+	statusTodoFoundByName, serverErr := usecase.todoRepository.GetStatusTodoByName(nameLower)
+	if serverErr != nil {
+		return
+	}
+	if statusTodoFoundByName != nil && statusTodoFoundByName.ID != statusTodoFound.ID {
+		if statusTodoFoundByName.Name == nameLower {
+			usecaseErr = ErrStatusTodoAlreadyExists
+			return
+		}
+	}
+
+	serverErr = usecase.todoRepository.UpdateStatusTodo(statusTodoId, nameLower)
 	return
 }
 

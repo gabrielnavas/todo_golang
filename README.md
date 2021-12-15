@@ -13,10 +13,19 @@ curl --location --request POST 'http://localhost:8080/todos' \
 }'
 ```
 
+#### Get todo
+```bash
+curl --location --request GET 'http://localhost:8080/todos/2'
+```
 
 #### Get all todos 
 ```bash
 curl --location --request GET 'http://localhost:8080/todos' 
+```
+
+#### Delete todo
+```bash
+curl --location --request DELETE 'http://localhost:8080/todos/2'
 ```
 
 #### Create Status Todo
@@ -25,6 +34,15 @@ curl --location --request POST 'http://localhost:8080/todos/status' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "name": "doing"
+}'
+```
+
+#### Update Status Todo
+```bash
+curl --location --request PUT 'http://localhost:8080/todos/status/1' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "finish"
 }'
 ```
 
