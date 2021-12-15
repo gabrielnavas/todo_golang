@@ -39,6 +39,11 @@ curl --location --request PATCH 'http://localhost:8080/todos/image/1' \
 curl --location --request GET 'http://localhost:8080/todos/image/1'
 ```
 
+#### Delete Image Todo
+```bash
+curl --location --request DELETE 'http://localhost:8080/todos/image/1'
+```
+
 #### Create Status Todo
 ```bash
 curl --location --request POST 'http://localhost:8080/todos/status' \

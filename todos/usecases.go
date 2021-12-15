@@ -15,7 +15,7 @@ type TodoUsecase interface {
 
 	UpdateImageTodo(dto *UpdateImageTodoDTO) (usecaseErr error, serverErr error)
 	GetImageTodo(todoID int64) (image *bytes.Buffer, usecaseErr error, serverErr error)
-	// DeleteImageTodo(todoID int64) (usecaseErr error, serverErr error)
+	DeleteImageTodo(todoID int64) (usecaseErr error, serverErr error)
 
 	CreateStatusTodo(name string) (statusTodo *StatusTodo, usecaseErr error, serverErr error)
 	UpdateStatusTodo(statusTodoId int64, name string) (usecaseErr error, serverErr error)
@@ -166,6 +166,15 @@ func (usecase *DBTodoUsecase) UpdateImageTodo(dto *UpdateImageTodoDTO) (usecaseE
 }
 
 func (usecase *DBTodoUsecase) GetImageTodo(todoID int64) (image *bytes.Buffer, usecaseErr error, serverErr error) {
+	todoFound, usecaseErr, serverErr := usecase.GetTodo(todoID)
+	if usecaseErr != nil || serverErr != nil {
+		return
+	}
+	if todoFound == nil {
+		usecaseErr = ErrTodoNotFound
+		return
+	}
+
 	imageFound, serverErr := usecase.todoRepository.GetImageTodo(todoID)
 	if serverErr != nil {
 		return
@@ -175,6 +184,20 @@ func (usecase *DBTodoUsecase) GetImageTodo(todoID int64) (image *bytes.Buffer, u
 		return
 	}
 	image = imageFound
+	return
+}
+
+func (usecase *DBTodoUsecase) DeleteImageTodo(todoID int64) (usecaseErr error, serverErr error) {
+	todoFound, usecaseErr, serverErr := usecase.GetTodo(todoID)
+	if usecaseErr != nil || serverErr != nil {
+		return
+	}
+	if todoFound == nil {
+		usecaseErr = ErrTodoNotFound
+		return
+	}
+
+	serverErr = usecase.todoRepository.UpdateImageTodo(todoID, nil)
 	return
 }
 
