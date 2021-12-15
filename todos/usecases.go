@@ -1,6 +1,7 @@
 package todos
 
 import (
+	"bytes"
 	"errors"
 	"strings"
 )
@@ -12,8 +13,8 @@ type TodoUsecase interface {
 	GetTodo(todoID int64) (todo *Todo, usecaseErr error, serverErr error)
 	GetAllTodo() (todos []*Todo, usecaseErr error, serverErr error)
 
-	// GetImageTodo(todoID int64) (image *bytes.Buffer, serverErr error)
 	UpdateImageTodo(dto *UpdateImageTodoDTO) (usecaseErr error, serverErr error)
+	GetImageTodo(todoID int64) (image *bytes.Buffer, usecaseErr error, serverErr error)
 	// DeleteImageTodo(todoID int64) (usecaseErr error, serverErr error)
 
 	CreateStatusTodo(name string) (statusTodo *StatusTodo, usecaseErr error, serverErr error)
@@ -33,6 +34,7 @@ var (
 	ErrTodoNotFound            = errors.New("todo not found")
 	ErrTodoIdIsNegative        = errors.New("todo id should be positive")
 	ErrHasTodosWithStatusId    = errors.New("has todos with this status id")
+	ErrImageNotFound           = errors.New("image not found")
 )
 
 type DBTodoUsecase struct {
@@ -160,6 +162,19 @@ func (usecase *DBTodoUsecase) UpdateImageTodo(dto *UpdateImageTodoDTO) (usecaseE
 	}
 
 	serverErr = usecase.todoRepository.UpdateImageTodo(dto.TodoId, &dto.BufferFile)
+	return
+}
+
+func (usecase *DBTodoUsecase) GetImageTodo(todoID int64) (image *bytes.Buffer, usecaseErr error, serverErr error) {
+	imageFound, serverErr := usecase.todoRepository.GetImageTodo(todoID)
+	if serverErr != nil {
+		return
+	}
+	if imageFound == nil {
+		usecaseErr = ErrImageNotFound
+		return
+	}
+	image = imageFound
 	return
 }
 

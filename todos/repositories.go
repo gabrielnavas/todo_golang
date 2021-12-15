@@ -15,8 +15,8 @@ type TodoRepository interface {
 	GetAllTodo() ([]*Todo, error)
 	CountTodoByStatus(statusTodoId int64) (int64, error)
 
-	// GetImageTodo(todoID int64) (*bytes.Buffer, error)
 	UpdateImageTodo(todoID int64, image *bytes.Buffer) error
+	GetImageTodo(todoID int64) (*bytes.Buffer, error)
 	// DeleteImageTodo(todoID int64) error
 
 	InsertStatusTodo(name string) (*StatusTodo, error)
@@ -154,6 +154,27 @@ func (repo *TodoRepositoryPG) UpdateImageTodo(todoID int64, image *bytes.Buffer)
 	args := []interface{}{todoID, image.Bytes()}
 	_, err := repo.db.Exec(sqlUpdate, args...)
 	return err
+}
+
+func (repo *TodoRepositoryPG) GetImageTodo(todoID int64) (*bytes.Buffer, error) {
+	buffImage := []byte{}
+	sqlGet := `
+		SELECT image 
+		FROM todos.todo
+		WHERE id=$1;
+	`
+	row := repo.db.QueryRow(sqlGet, todoID)
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+	err := row.Scan(&buffImage)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return bytes.NewBuffer(buffImage), nil
 }
 
 func (repo *TodoRepositoryPG) InsertStatusTodo(name string) (*StatusTodo, error) {

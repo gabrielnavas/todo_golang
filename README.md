@@ -34,6 +34,11 @@ curl --location --request PATCH 'http://localhost:8080/todos/image/1' \
 --form 'image=@"photo.jpg"'
 ```
 
+#### Get Image Todo
+```bash
+curl --location --request GET 'http://localhost:8080/todos/image/1'
+```
+
 #### Create Status Todo
 ```bash
 curl --location --request POST 'http://localhost:8080/todos/status' \
