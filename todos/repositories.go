@@ -19,6 +19,7 @@ type TodoRepository interface {
 
 	InsertStatusTodo(name string) (*StatusTodo, error)
 	UpdateStatusTodo(id int64, name string) error
+	GetAllStatusTodo() ([]*StatusTodo, error)
 	GetStatusTodo(statusID int64) (*StatusTodo, error)
 	GetStatusTodoByName(name string) (*StatusTodo, error)
 }
@@ -152,6 +153,27 @@ func (repo *TodoRepositoryPG) UpdateStatusTodo(id int64, name string) error {
 	args := []interface{}{id, name}
 	_, error := repo.db.Exec(sqlUpdate, args...)
 	return error
+}
+
+func (repo *TodoRepositoryPG) GetAllStatusTodo() ([]*StatusTodo, error) {
+	var allStatusTodo = make([]*StatusTodo, 0)
+	sqlGet := `
+		SELECT id, name, created_at, updated_at 
+		FROM todos.todo_status;
+	`
+	rows, err := repo.db.Query(sqlGet)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var statusTodo StatusTodo
+		err := rows.Scan(&statusTodo.ID, &statusTodo.Name, &statusTodo.CreatedAt, &statusTodo.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		allStatusTodo = append(allStatusTodo, &statusTodo)
+	}
+	return allStatusTodo, nil
 }
 
 func (repo *TodoRepositoryPG) GetStatusTodo(statusID int64) (*StatusTodo, error) {

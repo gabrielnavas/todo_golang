@@ -13,7 +13,7 @@ type TodoController interface {
 	UpdateTodo() func(c *gin.Context)
 	DeleteTodo() func(c *gin.Context)
 	GetTodo() func(c *gin.Context)
-	GetAllTodo() func(c *gin.Context)
+	GetAllTodos() func(c *gin.Context)
 
 	GetImageTodo() func(c *gin.Context)
 	UpdateImageTodo() func(c *gin.Context)
@@ -22,6 +22,7 @@ type TodoController interface {
 	CreateStatusTodo() func(c *gin.Context)
 	UpdateStatusTodo() func(c *gin.Context)
 	GetStatusTodo() func(c *gin.Context)
+	GetAllStatusTodo() func(c *gin.Context)
 }
 
 type TodoControllerGin struct {
@@ -180,7 +181,7 @@ func (controller *TodoControllerGin) GetTodo() func(c *gin.Context) {
 	}
 }
 
-func (controller *TodoControllerGin) GetAllTodo() func(c *gin.Context) {
+func (controller *TodoControllerGin) GetAllTodos() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		todos, usecaseErr, serverErr := controller.todoUsecase.GetAllTodo()
 		if serverErr != nil {
@@ -257,6 +258,22 @@ func (controller *TodoControllerGin) UpdateStatusTodo() func(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusNoContent, nil)
+	}
+}
+
+func (controller *TodoControllerGin) GetAllStatusTodo() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		allStatusTodo, usecaseErr, serverErr := controller.todoUsecase.GetAllStatusTodo()
+		if serverErr != nil {
+			fmt.Println(serverErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		if usecaseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, allStatusTodo)
 	}
 }
 

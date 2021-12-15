@@ -46,6 +46,11 @@ curl --location --request PUT 'http://localhost:8080/todos/status/1' \
 }'
 ```
 
+#### Get All Status Todo
+```bash
+curl --location --request GET 'http://localhost:8080/todos/status'
+```
+
 #### Get Status Todo
 ```bash
 curl --location --request GET 'http://localhost:8080/todos/status/6'

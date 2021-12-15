@@ -19,6 +19,7 @@ type TodoUsecase interface {
 	CreateStatusTodo(name string) (statusTodo *StatusTodo, usecaseErr error, serverErr error)
 	UpdateStatusTodo(statusTodoId int64, name string) (usecaseErr error, serverErr error)
 	GetStatusTodo(id int64) (statusTodo *StatusTodo, usecaseErr error, serverErr error)
+	GetAllStatusTodo() (allStatusTodo []*StatusTodo, usecaseErr error, serverErr error)
 }
 
 var (
@@ -216,5 +217,10 @@ func (usecase *DBTodoUsecase) GetStatusTodo(id int64) (statusTodo *StatusTodo, u
 		return
 	}
 
+	return
+}
+
+func (usecase *DBTodoUsecase) GetAllStatusTodo() (allStatusTodo []*StatusTodo, usecaseErr error, serverErr error) {
+	allStatusTodo, serverErr = usecase.todoRepository.GetAllStatusTodo()
 	return
 }

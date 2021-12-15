@@ -38,13 +38,14 @@ func main() {
 		controller := todos.NewTodoController(todoUsecase)
 		router.POST("/todos", controller.CreateTodo())
 		router.GET("/todos/:id", controller.GetTodo())
-		router.GET("/todos", controller.GetAllTodo())
+		router.GET("/todos", controller.GetAllTodos())
 		router.PUT("/todos/:id", controller.UpdateTodo())
 		router.DELETE("/todos/:id", controller.DeleteTodo())
 
 		// todo status
 		router.POST("todos/status", controller.CreateStatusTodo())
 		router.GET("todos/status/:id", controller.GetStatusTodo())
+		router.GET("todos/status", controller.GetAllStatusTodo())
 		router.PUT("todos/status/:id", controller.UpdateStatusTodo())
 	}
 
