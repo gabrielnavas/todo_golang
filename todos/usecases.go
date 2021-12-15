@@ -6,8 +6,8 @@ import (
 )
 
 type TodoUsecase interface {
-	CreateTodo(title, description string, statusID int64) (todo *Todo, usecaseErr error, serverErr error)
-	// UpdateTodo(todoID int64, title, description string) (usecaseErr error, serverErr error)
+	CreateTodo(title, description string, statusTodoId int64) (todo *Todo, usecaseErr error, serverErr error)
+	UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error)
 	// DeleteTodo(todoID int64) (usecaseErr error, serverErr error)
 	// GetTodo(todoID int64) (todo *Todo, usecaseErr error, serverErr error)
 	GetAllTodo() (todos []*Todo, usecaseErr error, serverErr error)
@@ -23,10 +23,11 @@ type TodoUsecase interface {
 var (
 	ErrTitleIsLong             = errors.New("title is too long")
 	ErrDescriptionIsLong       = errors.New("description is too long")
-	ErrStatusNotFound          = errors.New("status todo not found")
+	ErrStatusTodoNotFound      = errors.New("status todo not found")
 	ErrNameStatusTodoIsSmall   = errors.New("name status is small")
 	ErrStatusTodoAlreadyExists = errors.New("status todo already exists")
 	ErrStatusTodoIdNegative    = errors.New("status todo id should to be positive")
+	ErrTodoNotFound            = errors.New("todo not found")
 )
 
 type DBTodoUsecase struct {
@@ -37,7 +38,7 @@ func NewTodoUsecase(todoRepository TodoRepository) TodoUsecase {
 	return &DBTodoUsecase{todoRepository}
 }
 
-func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusID int64) (todo *Todo, usecaseErr error, serverErr error) {
+func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId int64) (todo *Todo, usecaseErr error, serverErr error) {
 	if len(title) > 255 {
 		usecaseErr = ErrTitleIsLong
 		return
@@ -46,27 +47,58 @@ func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusID int
 		usecaseErr = ErrDescriptionIsLong
 		return
 	}
-	if statusID <= 0 {
+	if statusTodoId <= 0 {
 		usecaseErr = ErrStatusTodoIdNegative
 		return
 	}
 
-	statusFound, err := usecase.todoRepository.GetStatusTodo(statusID)
+	statusFound, err := usecase.todoRepository.GetStatusTodo(statusTodoId)
 	if err != nil {
 		serverErr = err
 		return
 	}
 	if statusFound == nil {
-		usecaseErr = ErrStatusNotFound
+		usecaseErr = ErrStatusTodoNotFound
 		return
 	}
 
-	todo, err = usecase.todoRepository.InsertTodo(title, description, statusID)
+	todo, err = usecase.todoRepository.InsertTodo(title, description, statusTodoId)
 	if err != nil {
 		serverErr = err
 		return
 	}
 
+	return
+}
+
+func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error) {
+	statusFound, usecaseErr, serverErr := usecase.GetStatusTodo(statusTodoId)
+	if serverErr != nil {
+		return
+	}
+	if usecaseErr != nil {
+		return
+	}
+	if statusFound == nil {
+		usecaseErr = ErrStatusTodoNotFound
+		return
+	}
+
+	todoFound, err := usecase.todoRepository.GetTodo(todoID)
+	if err != nil {
+		serverErr = err
+		return
+	}
+	if todoFound == nil {
+		usecaseErr = ErrTodoNotFound
+		return
+	}
+
+	err = usecase.todoRepository.UpdateTodo(todoID, title, description, statusTodoId)
+	if err != nil {
+		serverErr = err
+		return
+	}
 	return
 }
 

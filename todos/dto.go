@@ -26,6 +26,27 @@ func (body *CreateTodoBody) ProcessData() {
 	body.Description = strings.TrimSpace(body.Description)
 }
 
+type UpdateTodoBody struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StatusID    int64  `json:"statusId"`
+}
+
+func (body *UpdateTodoBody) Validate() error {
+	if body.Title == "" {
+		return errors.New("missing title")
+	}
+	if body.Description == "" {
+		return errors.New("missing description")
+	}
+	return nil
+}
+
+func (body *UpdateTodoBody) ProcessData() {
+	body.Title = strings.TrimSpace(body.Title)
+	body.Description = strings.TrimSpace(body.Description)
+}
+
 type CreateStatusTodoBody struct {
 	Name string `json:"name"`
 }

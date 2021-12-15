@@ -32,3 +32,14 @@ curl --location --request POST 'http://localhost:8080/todos/status' \
 ```bash
 curl --location --request GET 'http://localhost:8080/todos/status/6'
 ```
+
+#### Update Status Todo
+```bash
+curl --location --request PUT 'http://localhost:8080/todos/9' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "title": "bar other",
+    "description": "foo other",
+    "statusId": 2
+}'
+```

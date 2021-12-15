@@ -80,7 +80,42 @@ func (controller *TodoControllerGin) DeleteImageTodo() func(c *gin.Context) {
 
 func (controller *TodoControllerGin) UpdateTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		c.JSON(http.StatusNotImplemented, gin.H{"message": "server error"})
+		idStr, hasId := c.Params.Get("id")
+		if !hasId {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id on url param"})
+			return
+		}
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id integer on url param"})
+			return
+		}
+
+		var body UpdateTodoBody
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})
+			return
+		}
+		err = body.Validate()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+		}
+
+		body.ProcessData()
+
+		usecaseErr, serverErr := controller.todoUsecase.UpdateTodo(id, body.Title, body.Description, body.StatusID)
+		if serverErr != nil {
+			fmt.Println(serverErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		if usecaseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
+			return
+		}
+
+		c.Status(http.StatusNoContent)
 	}
 }
 

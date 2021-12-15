@@ -38,6 +38,7 @@ func main() {
 		controller := todos.NewTodoController(todoUsecase)
 		router.POST("/todos", controller.CreateTodo())
 		router.GET("/todos", controller.GetAllTodo())
+		router.PUT("/todos/:id", controller.UpdateTodo())
 
 		// todo status
 		router.POST("todos/status", controller.CreateStatusTodo())

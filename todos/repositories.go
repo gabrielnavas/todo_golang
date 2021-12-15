@@ -3,13 +3,14 @@ package todos
 import (
 	"database/sql"
 	"errors"
+	"time"
 )
 
 type TodoRepository interface {
 	InsertTodo(title, description string, statusID int64) (*Todo, error)
-	// UpdateTodo(todoID int64, title, description string) error
+	UpdateTodo(todoID int64, title, description string, statusTodoId int64) error
 	// DeleteTodo(todoID int64) error
-	// GetTodo(todoID int64) (*Todo, error)
+	GetTodo(todoID int64) (*Todo, error)
 	GetAllTodo() ([]*Todo, error)
 
 	// GetImageTodo(todoID int64) (*bytes.Buffer, error)
@@ -48,6 +49,49 @@ func (repo *TodoRepositoryPG) InsertTodo(title, description string, statusID int
 	todo.Title = title
 	todo.Description = description
 	todo.StatusID = statusID
+	return &todo, nil
+}
+
+func (repo *TodoRepositoryPG) UpdateTodo(todoID int64, title, description string, statusTodoId int64) error {
+	now := time.Now().UTC()
+	sqlUpdate := `
+		UPDATE todos.todo
+		SET 
+			title=$2,
+			description=$3,
+			tstts_id=$4,
+			updated_at=$5
+		WHERE id=$1
+	`
+	args := []interface{}{todoID, title, description, statusTodoId, now}
+	_, err := repo.db.Exec(sqlUpdate, args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *TodoRepositoryPG) GetTodo(todoID int64) (*Todo, error) {
+	var todo Todo
+	sqlGet := `
+	SELECT id, title, description, created_at, updated_at, tstts_id
+	FROM todos.todo
+	WHERE id=$1;
+	`
+
+	row := repo.db.QueryRow(sqlGet, todoID)
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+
+	err := row.Scan(&todo.ID, &todo.Title, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt, &todo.StatusID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
 	return &todo, nil
 }
 
