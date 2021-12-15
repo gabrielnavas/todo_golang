@@ -71,7 +71,44 @@ func (controller *TodoControllerGin) GetImageTodo() func(c *gin.Context) {
 
 func (controller *TodoControllerGin) UpdateImageTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		c.JSON(http.StatusNotImplemented, gin.H{"message": "server error"})
+		// get id
+		idStr, hasId := c.Params.Get("id")
+		if !hasId {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id on url param"})
+			return
+		}
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id integer on url param"})
+			return
+		}
+
+		// get image
+		fileHeader, _ := c.FormFile("image")
+		updateImageTodoFile, err := NewUpdateImageTodoFile(id, fileHeader)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		err = updateImageTodoFile.Validate()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+		}
+
+		// update
+		usecaseErr, serverErr := controller.todoUsecase.UpdateImageTodo(updateImageTodoFile)
+		if serverErr != nil {
+			fmt.Println(serverErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		if usecaseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
+			return
+		}
+
+		c.Status(http.StatusNoContent)
 	}
 }
 

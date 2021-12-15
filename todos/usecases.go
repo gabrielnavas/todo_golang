@@ -13,7 +13,7 @@ type TodoUsecase interface {
 	GetAllTodo() (todos []*Todo, usecaseErr error, serverErr error)
 
 	// GetImageTodo(todoID int64) (image *bytes.Buffer, serverErr error)
-	// UpdateImageTodo(todoID int64, image *bytes.Buffer) (usecaseErr error, serverErr error)
+	UpdateImageTodo(dto *UpdateImageTodoDTO) (usecaseErr error, serverErr error)
 	// DeleteImageTodo(todoID int64) (usecaseErr error, serverErr error)
 
 	CreateStatusTodo(name string) (statusTodo *StatusTodo, usecaseErr error, serverErr error)
@@ -146,6 +146,20 @@ func (usecase *DBTodoUsecase) GetTodo(todoID int64) (todo *Todo, usecaseErr erro
 
 func (usecase *DBTodoUsecase) GetAllTodo() (todos []*Todo, usecaseErr error, serverErr error) {
 	todos, serverErr = usecase.todoRepository.GetAllTodo()
+	return
+}
+
+func (usecase *DBTodoUsecase) UpdateImageTodo(dto *UpdateImageTodoDTO) (usecaseErr error, serverErr error) {
+	todoFound, usecaseErr, serverErr := usecase.GetTodo(dto.TodoId)
+	if usecaseErr != nil || serverErr != nil {
+		return
+	}
+	if todoFound == nil {
+		usecaseErr = ErrTodoNotFound
+		return
+	}
+
+	serverErr = usecase.todoRepository.UpdateImageTodo(dto.TodoId, &dto.BufferFile)
 	return
 }
 

@@ -1,6 +1,7 @@
 package todos
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
 	"time"
@@ -15,7 +16,7 @@ type TodoRepository interface {
 	CountTodoByStatus(statusTodoId int64) (int64, error)
 
 	// GetImageTodo(todoID int64) (*bytes.Buffer, error)
-	// UpdateImageTodo(todoID int64, image *bytes.Buffer) error
+	UpdateImageTodo(todoID int64, image *bytes.Buffer) error
 	// DeleteImageTodo(todoID int64) error
 
 	InsertStatusTodo(name string) (*StatusTodo, error)
@@ -142,6 +143,17 @@ func (repo *TodoRepositoryPG) CountTodoByStatus(statusTodoId int64) (int64, erro
 		return -1, err
 	}
 	return count, nil
+}
+
+func (repo *TodoRepositoryPG) UpdateImageTodo(todoID int64, image *bytes.Buffer) error {
+	sqlUpdate := `
+		UPDATE todos.todo
+		SET image=$2
+		WHERE id=$1;
+	`
+	args := []interface{}{todoID, image.Bytes()}
+	_, err := repo.db.Exec(sqlUpdate, args...)
+	return err
 }
 
 func (repo *TodoRepositoryPG) InsertStatusTodo(name string) (*StatusTodo, error) {

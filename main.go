@@ -42,6 +42,9 @@ func main() {
 		router.PUT("/todos/:id", controller.UpdateTodo())
 		router.DELETE("/todos/:id", controller.DeleteTodo())
 
+		// todos image
+		router.PATCH("/todos/image/:id", controller.UpdateImageTodo())
+
 		// todo status
 		router.POST("todos/status", controller.CreateStatusTodo())
 		router.GET("todos/status/:id", controller.GetStatusTodo())
