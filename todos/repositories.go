@@ -12,6 +12,7 @@ type TodoRepository interface {
 	DeleteTodo(todoID int64) error
 	GetTodo(todoID int64) (*Todo, error)
 	GetAllTodo() ([]*Todo, error)
+	CountTodoByStatus(statusTodoId int64) (int64, error)
 
 	// GetImageTodo(todoID int64) (*bytes.Buffer, error)
 	// UpdateImageTodo(todoID int64, image *bytes.Buffer) error
@@ -123,6 +124,24 @@ func (repo *TodoRepositoryPG) GetAllTodo() ([]*Todo, error) {
 		todos = append(todos, &todo)
 	}
 	return todos, nil
+}
+
+func (repo *TodoRepositoryPG) CountTodoByStatus(statusTodoId int64) (int64, error) {
+	var count int64
+	sqlCount := `
+		SELECT COUNT(*)
+		FROM todos.todo
+		WHERE tstts_id=$1
+	`
+	row := repo.db.QueryRow(sqlCount, statusTodoId)
+	if row.Err() != nil {
+		return -1, row.Err()
+	}
+	err := row.Scan(&count)
+	if err != nil {
+		return -1, err
+	}
+	return count, nil
 }
 
 func (repo *TodoRepositoryPG) InsertStatusTodo(name string) (*StatusTodo, error) {

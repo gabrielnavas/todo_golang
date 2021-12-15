@@ -32,6 +32,7 @@ var (
 	ErrStatusTodoIdNegative    = errors.New("status todo id should to be positive")
 	ErrTodoNotFound            = errors.New("todo not found")
 	ErrTodoIdIsNegative        = errors.New("todo id should be positive")
+	ErrHasTodosWithStatusId    = errors.New("has todos with this status id")
 )
 
 type DBTodoUsecase struct {
@@ -238,6 +239,15 @@ func (usecase *DBTodoUsecase) DeleteStatusTodo(id int64) (usecaseErr error, serv
 	}
 	if statusTodoFound == nil {
 		usecaseErr = ErrStatusTodoNotFound
+		return
+	}
+
+	countTodoOnStatusTodo, serverErr := usecase.todoRepository.CountTodoByStatus(id)
+	if usecaseErr != nil {
+		return
+	}
+	if countTodoOnStatusTodo > 0 {
+		usecaseErr = ErrHasTodosWithStatusId
 		return
 	}
 
