@@ -66,3 +66,8 @@ curl --location --request PUT 'http://localhost:8080/todos/9' \
     "statusId": 2
 }'
 ```
+
+#### Delete Status Todo
+```bash
+curl --location --request DELETE 'http://localhost:8080/todos/status/3'
+```

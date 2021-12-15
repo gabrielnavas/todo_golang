@@ -47,6 +47,7 @@ func main() {
 		router.GET("todos/status/:id", controller.GetStatusTodo())
 		router.GET("todos/status", controller.GetAllStatusTodo())
 		router.PUT("todos/status/:id", controller.UpdateStatusTodo())
+		router.DELETE("todos/status/:id", controller.DeleteStatusTodo())
 	}
 
 	router.Run()

@@ -22,6 +22,7 @@ type TodoRepository interface {
 	GetAllStatusTodo() ([]*StatusTodo, error)
 	GetStatusTodo(statusID int64) (*StatusTodo, error)
 	GetStatusTodoByName(name string) (*StatusTodo, error)
+	DeleteStatusTodo(id int64) error
 }
 
 type TodoRepositoryPG struct {
@@ -104,7 +105,7 @@ func (repo *TodoRepositoryPG) GetTodo(todoID int64) (*Todo, error) {
 }
 
 func (repo *TodoRepositoryPG) GetAllTodo() ([]*Todo, error) {
-	var todos []*Todo
+	var todos = make([]*Todo, 0)
 	sqlGet := `
 		SELECT id, title, description, created_at, updated_at, tstts_id
 		FROM todos.todo
@@ -224,4 +225,13 @@ func (repo *TodoRepositoryPG) GetStatusTodoByName(name string) (*StatusTodo, err
 	}
 
 	return &statusTodo, nil
+}
+
+func (repo *TodoRepositoryPG) DeleteStatusTodo(id int64) error {
+	sqlDelete := `
+		DELETE FROM todos.todo_status
+		WHERE id=$1;
+	`
+	_, error := repo.db.Exec(sqlDelete, id)
+	return error
 }

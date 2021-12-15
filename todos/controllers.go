@@ -23,6 +23,7 @@ type TodoController interface {
 	UpdateStatusTodo() func(c *gin.Context)
 	GetStatusTodo() func(c *gin.Context)
 	GetAllStatusTodo() func(c *gin.Context)
+	DeleteStatusTodo() func(c *gin.Context)
 }
 
 type TodoControllerGin struct {
@@ -300,12 +301,39 @@ func (controller *TodoControllerGin) GetStatusTodo() func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
 			return
 		}
-
 		if statusTodoFound == nil {
 			c.JSON(http.StatusNotFound, gin.H{"message": "status todo not found"})
 			return
 		}
 
 		c.JSON(http.StatusOK, statusTodoFound)
+	}
+}
+
+func (controller *TodoControllerGin) DeleteStatusTodo() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		idStr, hasId := c.Params.Get("id")
+		if !hasId {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing status todo id on url param"})
+			return
+		}
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing status todo id integer on url param"})
+			return
+		}
+
+		usecaseErr, serverErr := controller.todoUsecase.DeleteStatusTodo(id)
+		if serverErr != nil {
+			fmt.Println(serverErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		if usecaseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
+			return
+		}
+
+		c.JSON(http.StatusNoContent, nil)
 	}
 }
