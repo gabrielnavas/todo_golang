@@ -3,19 +3,23 @@ package todos
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type TodoController interface {
 	CreateTodo() func(c *gin.Context)
-	GetImageTodo() func(c *gin.Context)
-	UpdateImageTodo() func(c *gin.Context)
-	DeleteImageTodo() func(c *gin.Context)
 	UpdateTodo() func(c *gin.Context)
 	DeleteTodo() func(c *gin.Context)
 	GetTodo() func(c *gin.Context)
 	GetAllTodo() func(c *gin.Context)
+
+	GetImageTodo() func(c *gin.Context)
+	UpdateImageTodo() func(c *gin.Context)
+	DeleteImageTodo() func(c *gin.Context)
+
+	CreateStatusTodo() func(c *gin.Context)
 	GetStatusTodo() func(c *gin.Context)
 }
 
@@ -31,7 +35,7 @@ func (controller *TodoControllerGin) CreateTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var body CreateTodoBody
 		if err := c.ShouldBindJSON(&body); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})
 			return
 		}
 		err := body.Validate()
@@ -40,9 +44,11 @@ func (controller *TodoControllerGin) CreateTodo() func(c *gin.Context) {
 			return
 		}
 
+		body.ProcessData()
+
 		todoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateTodo(body.Title, body.Description, body.StatusID)
 		if serverErr != nil {
-			fmt.Println("deu merda", serverErr.Error())
+			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
 			return
 		}
@@ -50,7 +56,6 @@ func (controller *TodoControllerGin) CreateTodo() func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
 			return
 		}
-
 		c.JSON(http.StatusCreated, todoCreated)
 	}
 }
@@ -95,7 +100,7 @@ func (controller *TodoControllerGin) GetAllTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		todos, usecaseErr, serverErr := controller.todoUsecase.GetAllTodo()
 		if serverErr != nil {
-			fmt.Println("deu merda", serverErr.Error())
+			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
 			return
 		}
@@ -107,8 +112,63 @@ func (controller *TodoControllerGin) GetAllTodo() func(c *gin.Context) {
 	}
 }
 
+func (controller *TodoControllerGin) CreateStatusTodo() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var body CreateStatusTodoBody
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})
+			return
+		}
+		err := body.Validate()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+		}
+
+		statusTodoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateStatusTodo(body.Name)
+		if serverErr != nil {
+			fmt.Println(serverErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		if usecaseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, statusTodoCreated)
+	}
+}
+
 func (controller *TodoControllerGin) GetStatusTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		c.JSON(http.StatusNotImplemented, gin.H{"message": "server error"})
+		idStr, hasId := c.Params.Get("id")
+		if !hasId {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing status todo id on url param"})
+			return
+		}
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "missing status todo id integer on url param"})
+			return
+		}
+
+		statusTodoFound, usecaseErr, serverErr := controller.todoUsecase.GetStatusTodo(id)
+		if serverErr != nil {
+			fmt.Println(serverErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		if usecaseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
+			return
+		}
+
+		if statusTodoFound == nil {
+			c.JSON(http.StatusNotFound, gin.H{"message": "status todo not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, statusTodoFound)
 	}
 }

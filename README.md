@@ -14,8 +14,21 @@ curl --location --request POST 'http://localhost:8080/todos' \
 ```
 
 
-#### Get all todos
+#### Get all todos 
 ```bash
-curl --location --request GET 'http://localhost:8080/todos' \
---data-raw ''
+curl --location --request GET 'http://localhost:8080/todos' 
+```
+
+#### Create Status Todo
+```bash
+curl --location --request POST 'http://localhost:8080/todos/status' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "doing"
+}'
+```
+
+#### Get Status Todo
+```bash
+curl --location --request GET 'http://localhost:8080/todos/status/6'
 ```

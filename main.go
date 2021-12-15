@@ -31,13 +31,17 @@ func main() {
 
 	// routers
 	router := gin.Default()
-	// todos
 	{
+		// todos
 		repo := todos.NewTodoRepository(db)
 		todoUsecase := todos.NewTodoUsecase(repo)
 		controller := todos.NewTodoController(todoUsecase)
 		router.POST("/todos", controller.CreateTodo())
 		router.GET("/todos", controller.GetAllTodo())
+
+		// todo status
+		router.POST("todos/status", controller.CreateStatusTodo())
+		router.GET("todos/status/:id", controller.GetStatusTodo())
 	}
 
 	router.Run()
