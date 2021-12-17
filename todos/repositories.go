@@ -83,10 +83,12 @@ func (repo *TodoRepositoryPG) DeleteTodo(todoID int64) error {
 
 func (repo *TodoRepositoryPG) GetTodo(todoID int64) (*Todo, error) {
 	var todo Todo
+	var bufferImage = []byte{}
+
 	sqlGet := `
-	SELECT id, title, description, created_at, updated_at, tstts_id
-	FROM todos.todo
-	WHERE id=$1;
+		SELECT id, title, description, created_at, updated_at, tstts_id, image
+		FROM todos.todo
+		WHERE id=$1;
 	`
 
 	row := repo.db.QueryRow(sqlGet, todoID)
@@ -94,12 +96,26 @@ func (repo *TodoRepositoryPG) GetTodo(todoID int64) (*Todo, error) {
 		return nil, row.Err()
 	}
 
-	err := row.Scan(&todo.ID, &todo.Title, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt, &todo.StatusID)
+	err := row.Scan(
+		&todo.ID,
+		&todo.Title,
+		&todo.Description,
+		&todo.CreatedAt,
+		&todo.UpdatedAt,
+		&todo.StatusID,
+		&bufferImage,
+	)
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
+	}
+
+	if len(bufferImage) > 0 {
+		reader := bytes.NewReader(bufferImage)
+		todo.Image.ReadFrom(reader)
 	}
 
 	return &todo, nil
@@ -108,21 +124,39 @@ func (repo *TodoRepositoryPG) GetTodo(todoID int64) (*Todo, error) {
 func (repo *TodoRepositoryPG) GetAllTodo() ([]*Todo, error) {
 	var todos = make([]*Todo, 0)
 	sqlGet := `
-		SELECT id, title, description, created_at, updated_at, tstts_id
+		SELECT id, title, description, created_at, updated_at, tstts_id, image
 		FROM todos.todo
 	`
 	rows, err := repo.db.Query(sqlGet)
 	if err != nil {
 		return nil, nil
 	}
+
 	for rows.Next() {
 		var todo Todo
-		err = rows.Scan(&todo.ID, &todo.Title, &todo.Description, &todo.CreatedAt, &todo.UpdatedAt, &todo.StatusID)
+		var bufferImage = []byte{}
+
+		err = rows.Scan(
+			&todo.ID,
+			&todo.Title,
+			&todo.Description,
+			&todo.CreatedAt,
+			&todo.UpdatedAt,
+			&todo.StatusID,
+			&bufferImage,
+		)
 		if err != nil {
 			return nil, nil
 		}
+
+		if len(bufferImage) > 0 {
+			reader := bytes.NewReader(bufferImage)
+			todo.Image.ReadFrom(reader)
+		}
+
 		todos = append(todos, &todo)
 	}
+
 	return todos, nil
 }
 

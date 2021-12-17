@@ -59,7 +59,7 @@ func (controller *TodoControllerGin) CreateTodo() func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
 			return
 		}
-		c.JSON(http.StatusCreated, todoCreated)
+		c.JSON(http.StatusCreated, todoCreated.ToDtoHttpResponse())
 	}
 }
 
@@ -265,7 +265,7 @@ func (controller *TodoControllerGin) GetTodo() func(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, todoFound)
+		c.JSON(http.StatusOK, todoFound.ToDtoHttpResponse())
 	}
 }
 
@@ -281,7 +281,13 @@ func (controller *TodoControllerGin) GetAllTodos() func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, todos)
+
+		var wrappedResponse []*TodoDtoHttpResponse = make([]*TodoDtoHttpResponse, 0)
+		for _, todo := range todos {
+			wrappedResponse = append(wrappedResponse, todo.ToDtoHttpResponse())
+		}
+
+		c.JSON(http.StatusOK, wrappedResponse)
 	}
 }
 
