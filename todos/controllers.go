@@ -87,8 +87,8 @@ func (controller *TodoControllerGin) GetImageTodo() func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"message": usecaseErr.Error()})
 			return
 		}
-		if bufferImage == nil {
-			c.JSON(http.StatusNotFound, gin.H{"message": usecaseErr.Error()})
+		if bufferImage.Len() == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"message": "image not found"})
 			return
 		}
 
