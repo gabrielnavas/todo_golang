@@ -29,11 +29,11 @@ var (
 	ErrDescriptionIsLong       = errors.New("description is too long")
 	ErrStatusTodoNotFound      = errors.New("status todo not found")
 	ErrNameStatusTodoIsSmall   = errors.New("name status is small")
-	ErrStatusTodoAlreadyExists = errors.New("status todo already exists")
+	ErrStatusTodoAlreadyExists = errors.New("status já existe")
 	ErrStatusTodoIdNegative    = errors.New("status todo id should to be positive")
 	ErrTodoNotFound            = errors.New("todo not found")
 	ErrTodoIdIsNegative        = errors.New("todo id should be positive")
-	ErrHasTodosWithStatusId    = errors.New("has todos with this status id")
+	ErrHasTodosWithStatusId    = errors.New("essa lista tem alguns Item, remove-os antes")
 	ErrImageNotFound           = errors.New("image not found")
 )
 
