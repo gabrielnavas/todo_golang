@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"api/hashpassword"
+	"api/pkg/hashpassword"
 )
 
 var (

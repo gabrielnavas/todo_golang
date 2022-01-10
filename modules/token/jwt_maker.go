@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// TODO: REFATORAR ISSO PARA MVC
 const minSecretKeySize = 32
 
 type JWTMaker struct {

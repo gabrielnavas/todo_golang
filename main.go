@@ -3,9 +3,9 @@ package main
 import (
 	"api/database"
 	"api/env"
-	"api/hashpassword"
-	"api/todos"
-	"api/users"
+	"api/modules/todos"
+	"api/modules/users"
+	"api/pkg/hashpassword"
 	"time"
 
 	"github.com/gin-contrib/cors"
