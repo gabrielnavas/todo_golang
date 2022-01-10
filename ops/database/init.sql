@@ -1,4 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS todos;
+CREATE SCHEMA IF NOT EXISTS users;
 
 CREATE TABLE IF NOT EXISTS todos.todo_status (
   id serial,
@@ -21,4 +22,16 @@ CREATE TABLE IF NOT EXISTS todos.todo (
   	REFERENCES todos.todo_status(id)
     ON UPDATE CASCADE
     ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS users.user (
+  id serial,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  username VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  photo BYTEA DEFAULT null,
+  PRIMARY KEY (id)
 );

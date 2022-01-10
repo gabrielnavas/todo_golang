@@ -3,7 +3,9 @@ package main
 import (
 	"api/database"
 	"api/env"
+	"api/hashpassword"
 	"api/todos"
+	"api/users"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -46,6 +48,23 @@ func main() {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
+
+	{
+		// users
+		repo := users.NewUserRepository(db)
+		hashPassword := hashpassword.NewHashPassword()
+		userUsecase := users.NewUserUsecase(repo, hashPassword)
+		userController := users.NewUserController(userUsecase)
+		router.POST("/users", userController.CreateUser())
+		router.PUT("/users/:id", userController.UpdateUser())
+		router.GET("/users/:id", userController.GetUser())
+		router.GET("/users", userController.GetAllUser())
+		router.DELETE("/users/:id", userController.DeleteUser())
+		router.POST("/users/change_password/:id", userController.ChangePassword())
+		router.PATCH("/users/photo/:id", userController.UpdatePhotoUser())
+		router.DELETE("/users/photo/:id", userController.DeletePhotoUser())
+		router.GET("/users/photo/:id", userController.GetPhotoUser())
+	}
 
 	{
 		// todos

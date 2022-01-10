@@ -1,6 +1,81 @@
 # Simple api TODO for studenty
 
-## Routes HTTP
+# Routes HTTP
+<br>
+
+# Routes User
+
+#### Create new user
+```bash
+curl --location --request POST 'http://localhost:8080/users' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "navas",
+	"username": "navas",
+	"email": "navas@email.com",
+    "password": "123456",
+	"passwordConfirmation": "123456"
+}'
+```
+
+#### Update user
+```bash
+curl --location --request PUT 'http://localhost:8080/users/1' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "navas10",
+	"username": "navas10",
+	"email": "navas10@email.com",
+    "password": "654321",
+	"passwordConfirmation": "654321"
+}'
+```
+
+#### Get All users
+```bash
+curl --location --request GET 'http://localhost:8080/users'
+```
+
+#### Get user
+```bash
+curl --location --request GET 'http://localhost:8080/users/1'
+```
+
+#### Delete user
+```bash
+curl --location --request DELETE 'http://localhost:8080/users/1'
+```
+
+#### Change Password user
+```bash
+curl --location --request POST 'http://localhost:8080/users/change_password/3' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "oldPassword": "123456",
+    "newPassword": "112233",
+    "newPasswordConfirmation": "112233"
+}'
+```
+
+#### Patch Photo user
+```bash
+curl --location --request PATCH 'http://localhost:8080/users/photo/3' \
+--form 'photo=@"/home/navas/Desktop/my_photo.jpg"'
+```
+
+#### Delete Photo user
+```bash
+curl --location --request DELETE 'http://localhost:8080/users/photo/3'
+```
+
+#### Get Photo user
+```bash
+curl --location --request GET 'http://localhost:8080/users/photo/2'
+```
+
+
+# Routes Todo
+<br>
 
 #### Create new todo
 ```bash

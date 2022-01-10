@@ -7,6 +7,7 @@ import (
 )
 
 type TodoUsecase interface {
+	// TODO: Mudar parâmetros de todas funções para dto (data transfer object)
 	CreateTodo(title, description string, statusTodoId int64) (todo *Todo, usecaseErr error, serverErr error)
 	UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error)
 	DeleteTodo(todoID int64) (usecaseErr error, serverErr error)
@@ -46,6 +47,8 @@ func NewTodoUsecase(todoRepository TodoRepository) TodoUsecase {
 }
 
 func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId int64) (todo *Todo, usecaseErr error, serverErr error) {
+	// TODO: mover validação para o model
+
 	if len(title) > 255 {
 		usecaseErr = ErrTitleIsLong
 		return
@@ -79,6 +82,8 @@ func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId
 }
 
 func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error) {
+
+	// TODO: mover validação para o model
 	if statusTodoId <= 0 {
 		usecaseErr = ErrStatusTodoIdNegative
 		return
@@ -86,6 +91,15 @@ func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string
 
 	if todoID <= 0 {
 		usecaseErr = ErrTodoIdIsNegative
+		return
+	}
+
+	if len(title) > 255 {
+		usecaseErr = ErrTitleIsLong
+		return
+	}
+	if len(description) > 255 {
+		usecaseErr = ErrDescriptionIsLong
 		return
 	}
 
