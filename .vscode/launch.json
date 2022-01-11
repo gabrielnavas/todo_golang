@@ -17,6 +17,7 @@
         "DATABASE_PASSWORD":"postgres",
         "DATABASE_DBNAME":"database",
         "DATABASE_SSLMODE":"disable",
+        "TOKEN_AUTH_SECRET_KEY":"iamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkey"
       }
     }
   ]

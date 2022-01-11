@@ -1,4 +1,4 @@
-package users
+package dto
 
 import (
 	"bytes"
@@ -6,6 +6,31 @@ import (
 	"mime/multipart"
 	"strings"
 )
+
+type ChangePasswordBody struct {
+	OldPassword             string `json:"oldPassword"`
+	NewPassword             string `json:"newPassword"`
+	NewPasswordConfirmation string `json:"newPasswordConfirmation"`
+}
+
+func (body *ChangePasswordBody) Validate() error {
+	if body.OldPassword == "" {
+		return errors.New("old password is empty")
+	}
+	if body.NewPassword == "" {
+		return errors.New("new password is empty")
+	}
+	if body.NewPasswordConfirmation == "" {
+		return errors.New("new password confirmation is empty")
+	}
+	return nil
+}
+
+func (body *ChangePasswordBody) ProcessData() {
+	body.OldPassword = strings.TrimSpace(body.OldPassword)
+	body.NewPassword = strings.TrimSpace(body.NewPassword)
+	body.NewPasswordConfirmation = strings.TrimSpace(body.NewPasswordConfirmation)
+}
 
 type CreateUserBody struct {
 	Name                 string `json:"name"`
@@ -39,35 +64,6 @@ func (body *CreateUserBody) ProcessData() {
 	body.Username = strings.TrimSpace(body.Username)
 	body.Password = strings.TrimSpace(body.Password)
 	body.Email = strings.TrimSpace(body.Email)
-}
-
-type UpdateUserBody struct {
-	CreateUserBody
-}
-
-type ChangePasswordBody struct {
-	OldPassword             string `json:"oldPassword"`
-	NewPassword             string `json:"newPassword"`
-	NewPasswordConfirmation string `json:"newPasswordConfirmation"`
-}
-
-func (body *ChangePasswordBody) Validate() error {
-	if body.OldPassword == "" {
-		return errors.New("old password is empty")
-	}
-	if body.NewPassword == "" {
-		return errors.New("new password is empty")
-	}
-	if body.NewPasswordConfirmation == "" {
-		return errors.New("new password confirmation is empty")
-	}
-	return nil
-}
-
-func (body *ChangePasswordBody) ProcessData() {
-	body.OldPassword = strings.TrimSpace(body.OldPassword)
-	body.NewPassword = strings.TrimSpace(body.NewPassword)
-	body.NewPasswordConfirmation = strings.TrimSpace(body.NewPasswordConfirmation)
 }
 
 type UpdatePhotoUserDTO struct {
@@ -138,4 +134,8 @@ func (file *UpdatePhotoUserDTO) checkSize() error {
 		return errors.New("image is more that 5MB")
 	}
 	return nil
+}
+
+type UpdateUserBody struct {
+	CreateUserBody
 }

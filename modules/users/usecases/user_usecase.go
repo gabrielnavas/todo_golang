@@ -1,11 +1,12 @@
-package users
+package usecases
 
 import (
 	"bytes"
 	"errors"
 	"time"
 
-	"api/pkg/hashpassword"
+	"api/modules/users/dto"
+	"api/modules/users/models"
 )
 
 var (
@@ -18,33 +19,33 @@ var (
 )
 
 type UserUsecase interface {
-	CreateUser(name, username, password, passwordConfirmation, email string) (userCreated *User, usecaseError, serverError error)
+	CreateUser(name, username, password, passwordConfirmation, email string) (userCreated *models.User, usecaseError, serverError error)
 	UpdateUser(id int64, name, username, password, email string) (usecaseError, serverError error)
 	DeleteUser(id int64) (usecaseError, serverError error)
-	GetUser(id int64) (userFound *User, usecaseError, serverError error)
-	GetAllUser() (userFound []*User, usecaseError, serverError error)
+	GetUser(id int64) (userFound *models.User, usecaseError, serverError error)
+	GetAllUser() (userFound []*models.User, usecaseError, serverError error)
 	ChangePassword(userId int64, oldPassword, newPassword, newPasswordConfirmation string) (usecaseError, serverError error)
 
-	UpdatePhotoUser(photo *UpdatePhotoUserDTO) (usecaseError, serverError error)
+	UpdatePhotoUser(photo *dto.UpdatePhotoUserDTO) (usecaseError, serverError error)
 	DeletePhotoUser(id int64) (usecaseError, serverError error)
 	GetPhotoUser(id int64) (photo *bytes.Buffer, usecaseError, serverError error)
 }
 
 type DBUserUsecase struct {
-	userRepository UserRepository
-	hashPassword   hashpassword.HashPassword
+	userRepository models.UserRepository
+	hashPassword   HashPassword
 }
 
-func NewUserUsecase(userRepository UserRepository, hashPassword hashpassword.HashPassword) UserUsecase {
+func NewUserUsecase(userRepository models.UserRepository, hashPassword HashPassword) UserUsecase {
 	return &DBUserUsecase{userRepository, hashPassword}
 }
 
-func (usecase *DBUserUsecase) CreateUser(name, username, password, passwordConfirmation, email string) (userCreated *User, usecaseError, serverError error) {
+func (usecase *DBUserUsecase) CreateUser(name, username, password, passwordConfirmation, email string) (userCreated *models.User, usecaseError, serverError error) {
 	if password != passwordConfirmation {
 		usecaseError = ErrPasswordNotEqualsPasswordConfirmation
 		return
 	}
-	_, usecaseError = NewUser(0, name, username, password, email, time.Now(), time.Now(), bytes.Buffer{})
+	_, usecaseError = models.NewUser(0, name, username, password, email, time.Now(), time.Now(), bytes.Buffer{})
 	if usecaseError != nil {
 		return
 	}
@@ -81,7 +82,7 @@ func (usecase *DBUserUsecase) CreateUser(name, username, password, passwordConfi
 }
 
 func (usecase *DBUserUsecase) UpdateUser(id int64, name, username, password, email string) (usecaseError, serverError error) {
-	_, usecaseError = NewUser(0, name, username, password, email, time.Now(), time.Now(), bytes.Buffer{})
+	_, usecaseError = models.NewUser(0, name, username, password, email, time.Now(), time.Now(), bytes.Buffer{})
 	if usecaseError != nil {
 		return usecaseError, nil
 	}
@@ -127,7 +128,7 @@ func (usecase *DBUserUsecase) DeleteUser(id int64) (usecaseError, serverError er
 	return nil, nil
 }
 
-func (usecase *DBUserUsecase) GetUser(id int64) (userFound *User, usecaseError, serverError error) {
+func (usecase *DBUserUsecase) GetUser(id int64) (userFound *models.User, usecaseError, serverError error) {
 	userFoundById, serverError := usecase.userRepository.GetUser(id)
 	if serverError != nil {
 		return nil, nil, serverError
@@ -140,7 +141,7 @@ func (usecase *DBUserUsecase) GetUser(id int64) (userFound *User, usecaseError, 
 	return userFoundById, nil, nil
 }
 
-func (usecase *DBUserUsecase) GetAllUser() (userFound []*User, usecaseError, serverError error) {
+func (usecase *DBUserUsecase) GetAllUser() (userFound []*models.User, usecaseError, serverError error) {
 	allUsers, serverError := usecase.userRepository.GetAllUser()
 	if serverError != nil {
 		return nil, nil, serverError
@@ -190,7 +191,7 @@ func (usecase *DBUserUsecase) ChangePassword(userId int64, oldPassword, newPassw
 	return
 }
 
-func (usecase *DBUserUsecase) UpdatePhotoUser(photoDto *UpdatePhotoUserDTO) (usecaseError, serverError error) {
+func (usecase *DBUserUsecase) UpdatePhotoUser(photoDto *dto.UpdatePhotoUserDTO) (usecaseError, serverError error) {
 	userFound, usecaseError, serverError := usecase.GetUser(photoDto.UserId)
 	if usecaseError != nil || serverError != nil {
 		return

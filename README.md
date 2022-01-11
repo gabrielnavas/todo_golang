@@ -73,6 +73,15 @@ curl --location --request DELETE 'http://localhost:8080/users/photo/3'
 curl --location --request GET 'http://localhost:8080/users/photo/2'
 ```
 
+# Routes Login
+```bash
+curl --location --request POST 'http://localhost:8080/users/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "username": "navas",
+    "password": "123456"
+}'
+```
 
 # Routes Todo
 <br>

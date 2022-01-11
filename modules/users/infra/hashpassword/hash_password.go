@@ -1,15 +1,14 @@
 package hashpassword
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"api/modules/users/usecases"
 
-type HashPassword interface {
-	Hash(passwordPlain string) (string, error)
-	Verify(passwordPlain, passwordHashed string) (bool, error)
-}
+	"golang.org/x/crypto/bcrypt"
+)
 
 type HashPasswordBcrypt struct{}
 
-func NewHashPassword() HashPassword {
+func NewHashPassword() usecases.HashPassword {
 	return &HashPasswordBcrypt{}
 }
 

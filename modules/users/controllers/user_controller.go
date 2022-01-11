@@ -1,6 +1,9 @@
-package users
+package controllers
 
 import (
+	"api/modules/users/dto"
+	"api/modules/users/models"
+	"api/modules/users/usecases"
 	"net/http"
 	"strconv"
 
@@ -21,16 +24,16 @@ type UserController interface {
 }
 
 type UserControllerGin struct {
-	userUsecase UserUsecase
+	userUsecase usecases.UserUsecase
 }
 
-func NewUserController(userUsecase UserUsecase) UserController {
+func NewUserController(userUsecase usecases.UserUsecase) UserController {
 	return &UserControllerGin{userUsecase}
 }
 
 func (controller *UserControllerGin) CreateUser() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var body CreateUserBody
+		var body dto.CreateUserBody
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})
 			return
@@ -70,7 +73,7 @@ func (controller *UserControllerGin) UpdateUser() func(c *gin.Context) {
 			return
 		}
 
-		var body UpdateUserBody
+		var body dto.UpdateUserBody
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})
 			return
@@ -167,7 +170,7 @@ func (controller *UserControllerGin) GetAllUser() func(c *gin.Context) {
 			return
 		}
 
-		var wrappedUsersResponse []*UserSafeHttp = make([]*UserSafeHttp, 0)
+		var wrappedUsersResponse []*models.UserSafeHttp = make([]*models.UserSafeHttp, 0)
 		for _, user := range users {
 			wrappedUsersResponse = append(wrappedUsersResponse, user.ToSafeHttp())
 		}
@@ -189,7 +192,7 @@ func (controller *UserControllerGin) ChangePassword() func(c *gin.Context) {
 			return
 		}
 
-		var body ChangePasswordBody
+		var body dto.ChangePasswordBody
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})
 			return
@@ -231,7 +234,7 @@ func (controller *UserControllerGin) UpdatePhotoUser() func(c *gin.Context) {
 
 		// get photo
 		fileHeader, _ := c.FormFile("photo")
-		userPhotoDto, err := NewUpdatePhotoUserDTO(id, fileHeader)
+		userPhotoDto, err := dto.NewUpdatePhotoUserDTO(id, fileHeader)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
 			return

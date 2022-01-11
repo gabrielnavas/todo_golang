@@ -13,6 +13,7 @@ type Environment struct {
 		Dbname   string `env:"DATABASE_DBNAME"`
 		Sslmode  string `env:"DATABASE_SSLMODE"`
 	}
+	TokenAuthSecretKey string `env:"TOKEN_AUTH_SECRET_KEY"`
 }
 
 func NewEnvironment() (*Environment, error) {

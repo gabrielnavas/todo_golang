@@ -4,8 +4,11 @@ import (
 	"api/database"
 	"api/env"
 	"api/modules/todos"
-	"api/modules/users"
-	"api/pkg/hashpassword"
+	"api/modules/users/controllers"
+	"api/modules/users/infra/hashpassword"
+	"api/modules/users/infra/repositories"
+	tokenjwt "api/modules/users/infra/token"
+	"api/modules/users/usecases"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -51,10 +54,19 @@ func main() {
 
 	{
 		// users
-		repo := users.NewUserRepository(db)
+		userRepository := repositories.NewUserRepository(db)
 		hashPassword := hashpassword.NewHashPassword()
-		userUsecase := users.NewUserUsecase(repo, hashPassword)
-		userController := users.NewUserController(userUsecase)
+		userUsecase := usecases.NewUserUsecase(userRepository, hashPassword)
+		userController := controllers.NewUserController(userUsecase)
+
+		secretKey := env.TokenAuthSecretKey
+		tokenJwtMaker, err := tokenjwt.NewJWTMaker(secretKey)
+		if err != nil {
+			panic(err)
+		}
+		loginUsecase := usecases.NewTokenLoginUsecase(userRepository, hashPassword, tokenJwtMaker)
+		loginController := controllers.NewLoginController(loginUsecase)
+
 		router.POST("/users", userController.CreateUser())
 		router.PUT("/users/:id", userController.UpdateUser())
 		router.GET("/users/:id", userController.GetUser())
@@ -64,6 +76,7 @@ func main() {
 		router.PATCH("/users/photo/:id", userController.UpdatePhotoUser())
 		router.DELETE("/users/photo/:id", userController.DeletePhotoUser())
 		router.GET("/users/photo/:id", userController.GetPhotoUser())
+		router.POST("/users/login", loginController.Login())
 	}
 
 	{

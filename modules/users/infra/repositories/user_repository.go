@@ -1,4 +1,4 @@
-package users
+package repositories
 
 import (
 	"bytes"
@@ -6,18 +6,20 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"api/modules/users/models"
 )
 
 type UserRepositoryPG struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
+func NewUserRepository(db *sql.DB) models.UserRepository {
 	return &UserRepositoryPG{db}
 }
 
-func (repo *UserRepositoryPG) InsertUser(name, username, password, email string) (*User, error) {
-	var user User
+func (repo *UserRepositoryPG) InsertUser(name, username, password, email string) (*models.User, error) {
+	var user models.User
 	sqlInsert := `
 		INSERT INTO users.user (name, email, username, password)
 		VALUES ($1, $2, $3, $4)
@@ -64,8 +66,8 @@ func (repo *UserRepositoryPG) DeleteUser(id int64) error {
 	return err
 }
 
-func (repo *UserRepositoryPG) GetUser(id int64) (*User, error) {
-	var user User
+func (repo *UserRepositoryPG) GetUser(id int64) (*models.User, error) {
+	var user models.User
 	var bufferImage = []byte{}
 
 	sqlGet := `
@@ -105,8 +107,8 @@ func (repo *UserRepositoryPG) GetUser(id int64) (*User, error) {
 	return &user, nil
 }
 
-func (repo *UserRepositoryPG) GetUserByEmail(email string) (*User, error) {
-	var user User
+func (repo *UserRepositoryPG) GetUserByEmail(email string) (*models.User, error) {
+	var user models.User
 	var bufferImage = []byte{}
 
 	sqlGet := `
@@ -147,8 +149,8 @@ func (repo *UserRepositoryPG) GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func (repo *UserRepositoryPG) GetUserByUsername(username string) (*User, error) {
-	var user User
+func (repo *UserRepositoryPG) GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
 	var bufferImage = []byte{}
 
 	sqlGet := `
@@ -189,8 +191,8 @@ func (repo *UserRepositoryPG) GetUserByUsername(username string) (*User, error) 
 	return &user, nil
 }
 
-func (repo *UserRepositoryPG) GetAllUser() ([]*User, error) {
-	var todos = make([]*User, 0)
+func (repo *UserRepositoryPG) GetAllUser() ([]*models.User, error) {
+	var todos = make([]*models.User, 0)
 	sqlGet := `
 		SELECT id, name, email, username, password, created_at, updated_at, photo
 		FROM users.user
@@ -202,7 +204,7 @@ func (repo *UserRepositoryPG) GetAllUser() ([]*User, error) {
 	}
 
 	for rows.Next() {
-		var user User
+		var user models.User
 		var bufferImage = []byte{}
 
 		err = rows.Scan(
