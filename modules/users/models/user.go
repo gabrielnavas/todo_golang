@@ -18,14 +18,15 @@ var (
 )
 
 type User struct {
-	ID        int64
-	Name      string
-	Username  string
-	Password  string
-	Email     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Photo     bytes.Buffer
+	ID          int64
+	Name        string
+	Username    string
+	Password    string
+	Email       string
+	LevelAccess LevelAccess
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Photo       bytes.Buffer
 }
 
 type UserSafeHttp struct {
@@ -38,8 +39,8 @@ type UserSafeHttp struct {
 }
 
 type UserRepository interface {
-	InsertUser(name, username, password, email string) (*User, error)
-	UpdateUser(id int64, name, username, password, email string) error
+	InsertUser(name, username, password, email string, levelAccess LevelAccess) (*User, error)
+	UpdateUser(id int64, name, username, password, email string, levelAccess LevelAccess) error
 	DeleteUser(id int64) error
 	GetUser(id int64) (*User, error)
 	GetUserByEmail(email string) (*User, error)
@@ -57,11 +58,12 @@ func NewUser(
 	username string,
 	password string,
 	email string,
+	levelAccess LevelAccess,
 	createdAt time.Time,
 	updatedAt time.Time,
 	photo bytes.Buffer,
 ) (*User, error) {
-	user := &User{id, name, username, password, email, createdAt, updatedAt, photo}
+	user := &User{id, name, username, password, email, levelAccess, createdAt, updatedAt, photo}
 	err := user.Valid()
 	if err != nil {
 		return nil, err
@@ -84,6 +86,9 @@ func (u *User) Valid() error {
 	}
 	if _, err := mail.ParseAddress(u.Email); err != nil {
 		return ErrEmailIsInvalid
+	}
+	if err := u.LevelAccess.Valid(); err != nil {
+		return err
 	}
 	if len(u.Password) < 6 {
 		return ErrPasswordIsSmall

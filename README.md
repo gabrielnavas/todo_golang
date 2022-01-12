@@ -27,7 +27,8 @@ curl --location --request PUT 'http://localhost:8080/users/1' \
 	"username": "navas10",
 	"email": "navas10@email.com",
     "password": "654321",
-	"passwordConfirmation": "654321"
+	"passwordConfirmation": "654321",
+    "levelAccess": 2
 }'
 ```
 

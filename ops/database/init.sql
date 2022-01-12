@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS users.user (
   email VARCHAR(255) NOT NULL UNIQUE,
   username VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
+  level_access INT NOT NULL, 
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
   photo BYTEA DEFAULT null,

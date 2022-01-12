@@ -85,7 +85,7 @@ func (controller *UserControllerGin) UpdateUser() func(c *gin.Context) {
 			return
 		}
 
-		usecaseErr, serverErr := controller.userUsecase.UpdateUser(id, body.Name, body.Username, body.Password, body.Email)
+		usecaseErr, serverErr := controller.userUsecase.UpdateUser(id, body.Name, body.Username, body.Password, body.Email, body.LevelAccess)
 		if serverErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
 			return

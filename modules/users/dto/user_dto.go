@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"api/modules/users/models"
 	"bytes"
 	"errors"
 	"mime/multipart"
@@ -138,4 +139,5 @@ func (file *UpdatePhotoUserDTO) checkSize() error {
 
 type UpdateUserBody struct {
 	CreateUserBody
+	LevelAccess models.LevelAccess `json:"levelAccess"`
 }

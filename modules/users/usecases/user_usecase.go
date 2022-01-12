@@ -22,7 +22,7 @@ var (
 type UserUsecase interface {
 	CreateGenesisUser() (userCreated *models.User, usecaseError, serverError error)
 	CreateUser(name, username, password, passwordConfirmation, email string) (userCreated *models.User, usecaseError, serverError error)
-	UpdateUser(id int64, name, username, password, email string) (usecaseError, serverError error)
+	UpdateUser(id int64, name, username, password, email string, levelAccess models.LevelAccess) (usecaseError, serverError error)
 	DeleteUser(id int64) (usecaseError, serverError error)
 	GetUser(id int64) (userFound *models.User, usecaseError, serverError error)
 	GetAllUser() (userFound []*models.User, usecaseError, serverError error)
@@ -43,7 +43,17 @@ func NewUserUsecase(userRepository models.UserRepository, hashPassword HashPassw
 }
 
 func (usecase *DBUserUsecase) CreateGenesisUser() (userCreated *models.User, usecaseError, serverError error) {
-	userCreated, usecaseError = models.NewUser(0, "adm", "adm", "123456", "adm@email.com", time.Now(), time.Now(), bytes.Buffer{})
+	userCreated, usecaseError = models.NewUser(
+		0,
+		"adm",
+		"adm",
+		"123456",
+		"adm@email.com",
+		models.AdminLevelAccess,
+		time.Now(),
+		time.Now(),
+		bytes.Buffer{},
+	)
 	if usecaseError != nil {
 		return
 	}
@@ -63,7 +73,13 @@ func (usecase *DBUserUsecase) CreateGenesisUser() (userCreated *models.User, use
 		return
 	}
 
-	userCreated, serverError = usecase.userRepository.InsertUser(userCreated.Name, userCreated.Username, passwordHashed, userCreated.Email)
+	userCreated, serverError = usecase.userRepository.InsertUser(
+		userCreated.Name,
+		userCreated.Username,
+		passwordHashed,
+		userCreated.Email,
+		userCreated.LevelAccess,
+	)
 	if serverError != nil {
 		return
 	}
@@ -76,7 +92,17 @@ func (usecase *DBUserUsecase) CreateUser(name, username, password, passwordConfi
 		usecaseError = ErrPasswordNotEqualsPasswordConfirmation
 		return
 	}
-	_, usecaseError = models.NewUser(0, name, username, password, email, time.Now(), time.Now(), bytes.Buffer{})
+	user, usecaseError := models.NewUser(
+		0,
+		name,
+		username,
+		password,
+		email,
+		models.BasicLevelAccess,
+		time.Now(),
+		time.Now(),
+		bytes.Buffer{},
+	)
 	if usecaseError != nil {
 		return
 	}
@@ -104,7 +130,7 @@ func (usecase *DBUserUsecase) CreateUser(name, username, password, passwordConfi
 		return
 	}
 
-	userCreated, serverError = usecase.userRepository.InsertUser(name, username, passwordHashed, email)
+	userCreated, serverError = usecase.userRepository.InsertUser(name, username, passwordHashed, email, user.LevelAccess)
 	if serverError != nil {
 		return
 	}
@@ -112,8 +138,18 @@ func (usecase *DBUserUsecase) CreateUser(name, username, password, passwordConfi
 	return userCreated, nil, nil
 }
 
-func (usecase *DBUserUsecase) UpdateUser(id int64, name, username, password, email string) (usecaseError, serverError error) {
-	_, usecaseError = models.NewUser(0, name, username, password, email, time.Now(), time.Now(), bytes.Buffer{})
+func (usecase *DBUserUsecase) UpdateUser(id int64, name, username, password, email string, levelAccess models.LevelAccess) (usecaseError, serverError error) {
+	user, usecaseError := models.NewUser(
+		0,
+		name,
+		username,
+		password,
+		email,
+		levelAccess,
+		time.Now(),
+		time.Now(),
+		bytes.Buffer{},
+	)
 	if usecaseError != nil {
 		return usecaseError, nil
 	}
@@ -139,7 +175,7 @@ func (usecase *DBUserUsecase) UpdateUser(id int64, name, username, password, ema
 		return nil, serverError
 	}
 
-	usecase.userRepository.UpdateUser(id, name, username, passwordHashed, email)
+	usecase.userRepository.UpdateUser(id, name, username, passwordHashed, email, user.LevelAccess)
 
 	return nil, nil
 }
@@ -215,6 +251,7 @@ func (usecase *DBUserUsecase) ChangePassword(userId int64, oldPassword, newPassw
 		userFound.Username,
 		passwordHashed,
 		userFound.Email,
+		userFound.LevelAccess,
 	)
 	if serverError != nil {
 		return

@@ -18,14 +18,14 @@ func NewUserRepository(db *sql.DB) models.UserRepository {
 	return &UserRepositoryPG{db}
 }
 
-func (repo *UserRepositoryPG) InsertUser(name, username, password, email string) (*models.User, error) {
+func (repo *UserRepositoryPG) InsertUser(name, username, password, email string, levelAccess models.LevelAccess) (*models.User, error) {
 	var user models.User
 	sqlInsert := `
-		INSERT INTO users.user (name, email, username, password)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO users.user (name, email, username, password, level_access)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at, updated_at;
 	`
-	args := []interface{}{name, email, username, password}
+	args := []interface{}{name, email, username, password, levelAccess}
 	row := repo.db.QueryRow(sqlInsert, args...)
 	if row.Err() != nil {
 		return nil, row.Err()
@@ -40,7 +40,7 @@ func (repo *UserRepositoryPG) InsertUser(name, username, password, email string)
 	return &user, nil
 }
 
-func (repo *UserRepositoryPG) UpdateUser(id int64, name, username, password, email string) error {
+func (repo *UserRepositoryPG) UpdateUser(id int64, name, username, password, email string, levelAccess models.LevelAccess) error {
 	now := time.Now().UTC()
 	sqlUpdate := `
 		UPDATE users.user
@@ -48,11 +48,12 @@ func (repo *UserRepositoryPG) UpdateUser(id int64, name, username, password, ema
 			name=$2,
 			email=$3,
 			username=$4,
-			password=$5,
-			updated_at=$6
+			level_access=$5,
+			password=$6,
+			updated_at=$7
 		WHERE id=$1
 	`
-	args := []interface{}{id, name, email, username, password, now}
+	args := []interface{}{id, name, email, username, levelAccess, password, now}
 	_, err := repo.db.Exec(sqlUpdate, args...)
 	return err
 }
