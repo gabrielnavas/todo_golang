@@ -30,12 +30,13 @@ type User struct {
 }
 
 type UserSafeHttp struct {
-	ID        int64     `json:"id"`
-	Name      string    `json:"name"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID          int64       `json:"id"`
+	Name        string      `json:"name"`
+	Username    string      `json:"username"`
+	Email       string      `json:"email"`
+	LevelAccess LevelAccess `json:"levelAccess"`
+	CreatedAt   time.Time   `json:"createdAt"`
+	UpdatedAt   time.Time   `json:"updatedAt"`
 }
 
 type UserRepository interface {
@@ -101,11 +102,12 @@ func (u *User) Valid() error {
 
 func (u *User) ToSafeHttp() *UserSafeHttp {
 	return &UserSafeHttp{
-		ID:        u.ID,
-		Name:      u.Name,
-		Username:  u.Username,
-		Email:     u.Email,
-		CreatedAt: u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
+		ID:          u.ID,
+		Name:        u.Name,
+		Username:    u.Username,
+		Email:       u.Email,
+		LevelAccess: u.LevelAccess,
+		CreatedAt:   u.CreatedAt,
+		UpdatedAt:   u.UpdatedAt,
 	}
 }
