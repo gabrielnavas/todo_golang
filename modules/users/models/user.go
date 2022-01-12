@@ -45,6 +45,7 @@ type UserRepository interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserByUsername(username string) (*User, error)
 	GetAllUser() ([]*User, error)
+	CountUser() (int64, error)
 
 	UpdatePhotoUser(userId int64, photo *bytes.Buffer) error
 	GetPhotoUser(id int64) (*bytes.Buffer, error)

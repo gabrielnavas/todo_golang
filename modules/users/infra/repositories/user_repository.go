@@ -232,6 +232,22 @@ func (repo *UserRepositoryPG) GetAllUser() ([]*models.User, error) {
 	return todos, nil
 }
 
+func (repo *UserRepositoryPG) CountUser() (int64, error) {
+	var count int64
+	sqlCount := `
+		SELECT COUNT(*)
+		FROM users.user;
+	`
+
+	result, err := repo.db.Query(sqlCount)
+	if err != nil {
+		return -1, err
+	}
+	result.Next()
+	result.Scan(&count)
+	return count, nil
+}
+
 func (repo *UserRepositoryPG) UpdatePhotoUser(userId int64, photo *bytes.Buffer) error {
 	var imageToArgs interface{} = nil
 	if photo != nil {

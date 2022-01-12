@@ -16,9 +16,11 @@ var (
 	ErrUserNotFound                          = errors.New("user not found")
 	ErrPhotoNotFound                         = errors.New("photo not found")
 	ErrOldPasswordWrong                      = errors.New("old password wrong")
+	ErrAllreadyHaveUsers                     = errors.New("allready have users")
 )
 
 type UserUsecase interface {
+	CreateGenesisUser() (userCreated *models.User, usecaseError, serverError error)
 	CreateUser(name, username, password, passwordConfirmation, email string) (userCreated *models.User, usecaseError, serverError error)
 	UpdateUser(id int64, name, username, password, email string) (usecaseError, serverError error)
 	DeleteUser(id int64) (usecaseError, serverError error)
@@ -38,6 +40,35 @@ type DBUserUsecase struct {
 
 func NewUserUsecase(userRepository models.UserRepository, hashPassword HashPassword) UserUsecase {
 	return &DBUserUsecase{userRepository, hashPassword}
+}
+
+func (usecase *DBUserUsecase) CreateGenesisUser() (userCreated *models.User, usecaseError, serverError error) {
+	userCreated, usecaseError = models.NewUser(0, "adm", "adm", "123456", "adm@email.com", time.Now(), time.Now(), bytes.Buffer{})
+	if usecaseError != nil {
+		return
+	}
+
+	userCount, serverError := usecase.userRepository.CountUser()
+	if serverError != nil {
+		return
+	}
+
+	if userCount > 0 {
+		usecaseError = ErrAllreadyHaveUsers
+		return
+	}
+
+	passwordHashed, serverError := usecase.hashPassword.Hash(userCreated.Password)
+	if serverError != nil {
+		return
+	}
+
+	userCreated, serverError = usecase.userRepository.InsertUser(userCreated.Name, userCreated.Username, passwordHashed, userCreated.Email)
+	if serverError != nil {
+		return
+	}
+
+	return userCreated, nil, nil
 }
 
 func (usecase *DBUserUsecase) CreateUser(name, username, password, passwordConfirmation, email string) (userCreated *models.User, usecaseError, serverError error) {

@@ -4,6 +4,7 @@ import (
 	"api/database"
 	"api/env"
 	"api/modules/todos"
+	"api/modules/users/cli"
 	"api/modules/users/controllers"
 	"api/modules/users/infra/hashpassword"
 	"api/modules/users/infra/repositories"
@@ -66,6 +67,13 @@ func main() {
 		}
 		loginUsecase := usecases.NewTokenLoginUsecase(userRepository, hashPassword, tokenJwtMaker)
 		loginController := controllers.NewLoginController(loginUsecase)
+
+		// create user genesis
+		cliUserController := cli.NewUserController(userUsecase)
+		err = cliUserController.AddUserGenesis()
+		if err != nil {
+			panic(err)
+		}
 
 		router.POST("/users", userController.CreateUser())
 		router.PUT("/users/:id", userController.UpdateUser())
