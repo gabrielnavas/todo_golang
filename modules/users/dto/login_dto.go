@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"api/modules/users/models"
 	"errors"
 	"strings"
 )
@@ -26,5 +27,18 @@ func (body *LoginBody) ProcessData() {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	Token string      `json:"token"`
+	User  models.User `json:"user"`
+}
+
+type LoginResponseSafe struct {
+	Token string              `json:"token"`
+	User  models.UserSafeHttp `json:"user"`
+}
+
+func (dto *LoginResponse) ToSafeHttp() *LoginResponseSafe {
+	return &LoginResponseSafe{
+		dto.Token,
+		*dto.User.ToSafeHttp(),
+	}
 }

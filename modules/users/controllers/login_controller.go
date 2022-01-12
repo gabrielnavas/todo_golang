@@ -45,7 +45,8 @@ func (controller *LoginControllerGin) Login() func(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusCreated, loginResponse)
+		loginResponseSafe := loginResponse.ToSafeHttp()
+		c.JSON(http.StatusCreated, loginResponseSafe)
 	}
 }
 

@@ -52,7 +52,10 @@ func (usecase *TokenLoginUsecase) Login(username string, password string) (login
 	if serverError != nil {
 		return
 	}
-	loginResponse = dto.LoginResponse{Token: token}
+	loginResponse = dto.LoginResponse{
+		Token: token,
+		User:  *userFound,
+	}
 
 	return
 }

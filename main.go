@@ -89,8 +89,11 @@ func main() {
 
 	{
 		// todos
-		repo := todos.NewTodoRepository(db)
-		todoUsecase := todos.NewTodoUsecase(repo)
+		todoRepository := todos.NewTodoRepository(db)
+		userRepository := repositories.NewUserRepository(db)
+		hashPassword := hashpassword.NewHashPassword()
+		userUsecase := usecases.NewUserUsecase(userRepository, hashPassword)
+		todoUsecase := todos.NewTodoUsecase(todoRepository, userUsecase)
 		controller := todos.NewTodoController(todoUsecase)
 		router.POST("/todos", controller.CreateTodo())
 		router.GET("/todos/:id", controller.GetTodo())
