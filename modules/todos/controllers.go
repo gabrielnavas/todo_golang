@@ -49,7 +49,7 @@ func (controller *TodoControllerGin) CreateTodo() func(c *gin.Context) {
 
 		body.ProcessData()
 
-		todoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateTodo(body.Title, body.Description, body.StatusID)
+		todoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateTodo(body.Title, body.Description, body.StatusID, body.UserId)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
@@ -194,7 +194,7 @@ func (controller *TodoControllerGin) UpdateTodo() func(c *gin.Context) {
 
 		body.ProcessData()
 
-		usecaseErr, serverErr := controller.todoUsecase.UpdateTodo(id, body.Title, body.Description, body.StatusID)
+		usecaseErr, serverErr := controller.todoUsecase.UpdateTodo(id, body.Title, body.Description, body.StatusID, body.UserId)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})

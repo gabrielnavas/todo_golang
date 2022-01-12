@@ -1,6 +1,7 @@
 package todos
 
 import (
+	usersUsecase "api/modules/users/usecases"
 	"bytes"
 	"errors"
 	"strings"
@@ -8,8 +9,8 @@ import (
 
 type TodoUsecase interface {
 	// TODO: Mudar parâmetros de todas funções para dto (data transfer object)
-	CreateTodo(title, description string, statusTodoId int64) (todo *Todo, usecaseErr error, serverErr error)
-	UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error)
+	CreateTodo(title, description string, statusTodoId, userId int64) (todo *Todo, usecaseErr error, serverErr error)
+	UpdateTodo(todoID int64, title, description string, statusTodoId, userId int64) (usecaseErr error, serverErr error)
 	DeleteTodo(todoID int64) (usecaseErr error, serverErr error)
 	GetTodo(todoID int64) (todo *Todo, usecaseErr error, serverErr error)
 	GetAllTodo() (todos []*Todo, usecaseErr error, serverErr error)
@@ -32,7 +33,9 @@ var (
 	ErrNameStatusTodoIsSmall   = errors.New("name status is small")
 	ErrStatusTodoAlreadyExists = errors.New("status já existe")
 	ErrStatusTodoIdNegative    = errors.New("status todo id should to be positive")
+	ErrUserIdNegative          = errors.New("user id should to be positive")
 	ErrTodoNotFound            = errors.New("todo not found")
+	ErrUserNotFound            = errors.New("user not found")
 	ErrTodoIdIsNegative        = errors.New("todo id should be positive")
 	ErrHasTodosWithStatusId    = errors.New("essa lista tem alguns Item, remove-os antes")
 	ErrImageNotFound           = errors.New("image not found")
@@ -40,13 +43,17 @@ var (
 
 type DBTodoUsecase struct {
 	todoRepository TodoRepository
+	userRepository usersUsecase.UserUsecase
 }
 
-func NewTodoUsecase(todoRepository TodoRepository) TodoUsecase {
-	return &DBTodoUsecase{todoRepository}
+func NewTodoUsecase(
+	todoRepository TodoRepository,
+	userRepository usersUsecase.UserUsecase,
+) TodoUsecase {
+	return &DBTodoUsecase{todoRepository, userRepository}
 }
 
-func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId int64) (todo *Todo, usecaseErr error, serverErr error) {
+func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId, userId int64) (todo *Todo, usecaseErr error, serverErr error) {
 	// TODO: mover validação para o model
 
 	if len(title) > 255 {
@@ -61,6 +68,10 @@ func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId
 		usecaseErr = ErrStatusTodoIdNegative
 		return
 	}
+	if userId <= 0 {
+		usecaseErr = ErrUserIdNegative
+		return
+	}
 
 	statusFound, err := usecase.todoRepository.GetStatusTodo(statusTodoId)
 	if err != nil {
@@ -72,7 +83,19 @@ func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId
 		return
 	}
 
-	todo, err = usecase.todoRepository.InsertTodo(title, description, statusTodoId)
+	userFound, usecaseErr, serverErr := usecase.userRepository.GetUser(userId)
+	if serverErr != nil {
+		return
+	}
+	if usecaseErr != nil {
+		return
+	}
+	if userFound == nil {
+		usecaseErr = ErrUserNotFound
+		return
+	}
+
+	todo, err = usecase.todoRepository.InsertTodo(title, description, statusTodoId, userId)
 	if err != nil {
 		serverErr = err
 		return
@@ -81,11 +104,16 @@ func (usecase *DBTodoUsecase) CreateTodo(title, description string, statusTodoId
 	return
 }
 
-func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string, statusTodoId int64) (usecaseErr error, serverErr error) {
+func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string, statusTodoId, userId int64) (usecaseErr error, serverErr error) {
 
 	// TODO: mover validação para o model
 	if statusTodoId <= 0 {
 		usecaseErr = ErrStatusTodoIdNegative
+		return
+	}
+
+	if userId <= 0 {
+		usecaseErr = ErrUserIdNegative
 		return
 	}
 
@@ -115,6 +143,18 @@ func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string
 		return
 	}
 
+	userFound, usecaseErr, serverErr := usecase.userRepository.GetUser(userId)
+	if serverErr != nil {
+		return
+	}
+	if usecaseErr != nil {
+		return
+	}
+	if userFound == nil {
+		usecaseErr = ErrUserNotFound
+		return
+	}
+
 	todoFound, err := usecase.todoRepository.GetTodo(todoID)
 	if err != nil {
 		serverErr = err
@@ -125,7 +165,7 @@ func (usecase *DBTodoUsecase) UpdateTodo(todoID int64, title, description string
 		return
 	}
 
-	err = usecase.todoRepository.UpdateTodo(todoID, title, description, statusTodoId)
+	err = usecase.todoRepository.UpdateTodo(todoID, title, description, statusTodoId, userId)
 	if err != nil {
 		serverErr = err
 		return

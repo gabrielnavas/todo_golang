@@ -89,12 +89,25 @@ curl --location --request POST 'http://localhost:8080/users/login' \
 
 #### Create new todo
 ```bash
-curl --location --request POST 'http://localhost:8080/todos' \
+curl --location --request POST 'localhost:8080/todos' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-	"title": "title",
-	"description": "description",
-	"statusId": 1
+    "title": "lorem today",
+    "description": "lorem today vai nessa!",
+    "statusId": 1,
+    "userId": 1
+}'
+```
+
+#### Update Todo
+```bash
+curl --location --request PUT 'localhost:8080/todos/1' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "title": "vai vai",
+    "description": "vem vem",
+    "statusId": 1,
+    "userId": 2
 }'
 ```
 

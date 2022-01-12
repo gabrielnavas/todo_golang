@@ -37,6 +37,7 @@ func (repo *UserRepositoryPG) InsertUser(name, username, password, email string,
 	user.Name = name
 	user.Email = email
 	user.Username = username
+	user.LevelAccess = levelAccess
 	return &user, nil
 }
 
@@ -72,7 +73,7 @@ func (repo *UserRepositoryPG) GetUser(id int64) (*models.User, error) {
 	var bufferImage = []byte{}
 
 	sqlGet := `
-		SELECT id, name, email, username, password, created_at, updated_at, photo
+		SELECT id, name, email, username, password, level_access, created_at, updated_at, photo
 		FROM users.user
 		WHERE id=$1;
 	`
@@ -88,6 +89,7 @@ func (repo *UserRepositoryPG) GetUser(id int64) (*models.User, error) {
 		&user.Email,
 		&user.Username,
 		&user.Password,
+		&user.LevelAccess,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&bufferImage,
@@ -113,7 +115,7 @@ func (repo *UserRepositoryPG) GetUserByEmail(email string) (*models.User, error)
 	var bufferImage = []byte{}
 
 	sqlGet := `
-		SELECT id, name, email, username, password, created_at, updated_at, photo
+		SELECT id, name, email, username, password, level_access, created_at, updated_at, photo
 		FROM users.user
 		WHERE LOWER(email)=$1;
 	`
@@ -130,6 +132,7 @@ func (repo *UserRepositoryPG) GetUserByEmail(email string) (*models.User, error)
 		&user.Email,
 		&user.Username,
 		&user.Password,
+		&user.LevelAccess,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&bufferImage,
@@ -155,7 +158,7 @@ func (repo *UserRepositoryPG) GetUserByUsername(username string) (*models.User, 
 	var bufferImage = []byte{}
 
 	sqlGet := `
-		SELECT id, name, email, username, password, created_at, updated_at, photo
+		SELECT id, name, email, username, password, level_access, created_at, updated_at, photo
 		FROM users.user
 		WHERE LOWER(username)=$1;
 	`
@@ -172,6 +175,7 @@ func (repo *UserRepositoryPG) GetUserByUsername(username string) (*models.User, 
 		&user.Email,
 		&user.Username,
 		&user.Password,
+		&user.LevelAccess,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&bufferImage,
@@ -195,7 +199,7 @@ func (repo *UserRepositoryPG) GetUserByUsername(username string) (*models.User, 
 func (repo *UserRepositoryPG) GetAllUser() ([]*models.User, error) {
 	var todos = make([]*models.User, 0)
 	sqlGet := `
-		SELECT id, name, email, username, password, created_at, updated_at, photo
+		SELECT id, name, email, username, password, level_access, created_at, updated_at, photo
 		FROM users.user
 		ORDER BY created_at DESC;
 	`
@@ -214,6 +218,7 @@ func (repo *UserRepositoryPG) GetAllUser() ([]*models.User, error) {
 			&user.Email,
 			&user.Username,
 			&user.Password,
+			&user.LevelAccess,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 			&bufferImage,
