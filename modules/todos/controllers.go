@@ -49,7 +49,7 @@ func (controller *TodoControllerGin) CreateTodo() func(c *gin.Context) {
 
 		body.ProcessData()
 
-		todoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateTodo(body.Title, body.Description, body.StatusID, body.UserId)
+		todoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateTodo(body.Title, body.Description, body.StatusID)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
@@ -194,7 +194,7 @@ func (controller *TodoControllerGin) UpdateTodo() func(c *gin.Context) {
 
 		body.ProcessData()
 
-		usecaseErr, serverErr := controller.todoUsecase.UpdateTodo(id, body.Title, body.Description, body.StatusID, body.UserId)
+		usecaseErr, serverErr := controller.todoUsecase.UpdateTodo(id, body.Title, body.Description, body.StatusID)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
@@ -291,6 +291,8 @@ func (controller *TodoControllerGin) GetAllTodos() func(c *gin.Context) {
 	}
 }
 
+// TODO: refatorar para vir com userId
+// TODO: refatorar todos statusTodo (get, update, get all)
 func (controller *TodoControllerGin) CreateStatusTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var body CreateStatusTodoBody
@@ -319,6 +321,7 @@ func (controller *TodoControllerGin) CreateStatusTodo() func(c *gin.Context) {
 	}
 }
 
+// TODO: refatorar para vir com userId
 func (controller *TodoControllerGin) UpdateStatusTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		idStr, hasId := c.Params.Get("id")
@@ -332,6 +335,7 @@ func (controller *TodoControllerGin) UpdateStatusTodo() func(c *gin.Context) {
 			return
 		}
 
+		// TODO: mudar para updatestatusTodobody
 		var body CreateStatusTodoBody
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})

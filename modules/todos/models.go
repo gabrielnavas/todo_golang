@@ -13,7 +13,6 @@ type Todo struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	StatusID    int64
-	UserID      int64
 	Image       bytes.Buffer
 }
 
@@ -23,7 +22,7 @@ func (t *Todo) ToDtoHttpResponse() *TodoDtoHttpResponse {
 		imageUrl = fmt.Sprintf("/todos/image/%d", t.ID)
 	}
 	return &TodoDtoHttpResponse{
-		t.ID, t.Title, t.Description, t.CreatedAt, t.UpdatedAt, t.StatusID, t.UserID, imageUrl,
+		t.ID, t.Title, t.Description, t.CreatedAt, t.UpdatedAt, t.StatusID, imageUrl,
 	}
 }
 
@@ -34,7 +33,6 @@ type TodoDtoHttpResponse struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 	StatusID    int64     `json:"statusId"`
-	UserID      int64     `json:"userId"`
 	ImageUrl    string    `json:"imageUrl"`
 }
 

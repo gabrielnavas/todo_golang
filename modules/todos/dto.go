@@ -11,7 +11,6 @@ type CreateTodoBody struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	StatusID    int64  `json:"statusId"`
-	UserId      int64  `json:"userId"`
 }
 
 func (body *CreateTodoBody) Validate() error {
@@ -33,7 +32,6 @@ type UpdateTodoBody struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	StatusID    int64  `json:"statusId"`
-	UserId      int64  `json:"userId"`
 }
 
 func (body *UpdateTodoBody) Validate() error {

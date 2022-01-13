@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS todos.todo_status (
 CREATE TABLE IF NOT EXISTS todos.todo (
   id serial,
   tstts_id INT,
-  user_id INT,
   title VARCHAR(255) NOT NULL,
   description VARCHAR(255) NOT NULL,
   image BYTEA DEFAULT null,
@@ -36,9 +35,5 @@ CREATE TABLE IF NOT EXISTS todos.todo (
   FOREIGN KEY (tstts_id) 
   	REFERENCES todos.todo_status(id)
     ON UPDATE CASCADE
-    ON DELETE RESTRICT,
-  FOREIGN KEY (user_id) 
-  	REFERENCES users.user(id)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE
+    ON DELETE RESTRICT
 );
