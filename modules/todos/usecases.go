@@ -251,6 +251,16 @@ func (usecase *DBTodoUsecase) CreateStatusTodo(name string, userId int64) (statu
 }
 
 func (usecase *DBTodoUsecase) UpdateStatusTodo(userId, statusTodoId int64, name string) (usecaseErr error, serverErr error) {
+	if userId <= 0 {
+		usecaseErr = ErrUserIdNegative
+		return
+	}
+
+	if len(name) < 2 || len(name) > 255 {
+		usecaseErr = ErrNameStatusTodoIsSmall
+		return
+	}
+
 	if statusTodoId <= 0 {
 		usecaseErr = ErrStatusTodoIdNegative
 		return
