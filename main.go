@@ -44,7 +44,7 @@ func main() {
 
 	//cors
 	routerPublic.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{"http://localhost:4000", "https://todoappnavas.herokuapp.com"},
 		AllowMethods:     []string{"GET", "POST", "DELETE", "PUT", "PATCH"},
 		AllowHeaders:     []string{"*"},
 		ExposeHeaders:    []string{"*"},
