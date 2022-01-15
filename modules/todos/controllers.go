@@ -1,6 +1,8 @@
 package todos
 
 import (
+	"api/modules/users/middlewares"
+	"api/modules/users/models"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -49,7 +51,31 @@ func (controller *TodoControllerGin) CreateTodo() func(c *gin.Context) {
 
 		body.ProcessData()
 
-		todoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateTodo(body.Title, body.Description, body.StatusID)
+		// get user id
+		userIdValue, exists := c.Get(middlewares.UserId)
+		if !exists {
+			fmt.Println("need user id for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		userId := userIdValue.(int64)
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
+		todoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateTodo(body.Title, body.Description, body.StatusID, userId)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
@@ -74,6 +100,21 @@ func (controller *TodoControllerGin) GetImageTodo() func(c *gin.Context) {
 		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id integer on url param"})
+			return
+		}
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
 			return
 		}
 
@@ -108,6 +149,21 @@ func (controller *TodoControllerGin) UpdateImageTodo() func(c *gin.Context) {
 		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id integer on url param"})
+			return
+		}
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
 			return
 		}
 
@@ -153,6 +209,21 @@ func (controller *TodoControllerGin) DeleteImageTodo() func(c *gin.Context) {
 			return
 		}
 
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
 		usecaseErr, serverErr := controller.todoUsecase.DeleteImageTodo(id)
 		if serverErr != nil {
 			fmt.Println(serverErr)
@@ -194,7 +265,31 @@ func (controller *TodoControllerGin) UpdateTodo() func(c *gin.Context) {
 
 		body.ProcessData()
 
-		usecaseErr, serverErr := controller.todoUsecase.UpdateTodo(id, body.Title, body.Description, body.StatusID)
+		// get user id
+		userIdValue, exists := c.Get(middlewares.UserId)
+		if !exists {
+			fmt.Println("need user id for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		userId := userIdValue.(int64)
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
+		usecaseErr, serverErr := controller.todoUsecase.UpdateTodo(id, body.Title, body.Description, body.StatusID, userId)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
@@ -219,6 +314,21 @@ func (controller *TodoControllerGin) DeleteTodo() func(c *gin.Context) {
 		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing todo id integer on url param"})
+			return
+		}
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
 			return
 		}
 
@@ -250,6 +360,21 @@ func (controller *TodoControllerGin) GetTodo() func(c *gin.Context) {
 			return
 		}
 
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
 		todoFound, usecaseErr, serverErr := controller.todoUsecase.GetTodo(id)
 		if serverErr != nil {
 			fmt.Println(serverErr)
@@ -271,6 +396,21 @@ func (controller *TodoControllerGin) GetTodo() func(c *gin.Context) {
 
 func (controller *TodoControllerGin) GetAllTodos() func(c *gin.Context) {
 	return func(c *gin.Context) {
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
 		todos, usecaseErr, serverErr := controller.todoUsecase.GetAllTodo()
 		if serverErr != nil {
 			fmt.Println(serverErr)
@@ -291,10 +431,9 @@ func (controller *TodoControllerGin) GetAllTodos() func(c *gin.Context) {
 	}
 }
 
-// TODO: refatorar para vir com userId
-// TODO: refatorar todos statusTodo (get, update, get all)
 func (controller *TodoControllerGin) CreateStatusTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
+		// get body
 		var body CreateStatusTodoBody
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing body"})
@@ -306,7 +445,32 @@ func (controller *TodoControllerGin) CreateStatusTodo() func(c *gin.Context) {
 			return
 		}
 
-		statusTodoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateStatusTodo(body.Name)
+		// get user id
+		userIdValue, exists := c.Get(middlewares.UserId)
+		if !exists {
+			fmt.Println("need user id for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		userId := userIdValue.(int64)
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
+		// create status todo
+		statusTodoCreated, usecaseErr, serverErr := controller.todoUsecase.CreateStatusTodo(body.Name, userId)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
@@ -317,6 +481,7 @@ func (controller *TodoControllerGin) CreateStatusTodo() func(c *gin.Context) {
 			return
 		}
 
+		//return
 		c.JSON(http.StatusCreated, statusTodoCreated)
 	}
 }
@@ -329,7 +494,7 @@ func (controller *TodoControllerGin) UpdateStatusTodo() func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing status todo id on url param"})
 			return
 		}
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		statusId, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "missing status todo id integer on url param"})
 			return
@@ -344,7 +509,31 @@ func (controller *TodoControllerGin) UpdateStatusTodo() func(c *gin.Context) {
 
 		body.ProcessData()
 
-		usecaseErr, serverErr := controller.todoUsecase.UpdateStatusTodo(id, body.Name)
+		// get user id
+		userIdValue, exists := c.Get(middlewares.UserId)
+		if !exists {
+			fmt.Println("need user id for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		userId := userIdValue.(int64)
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
+		usecaseErr, serverErr := controller.todoUsecase.UpdateStatusTodo(userId, statusId, body.Name)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
@@ -361,6 +550,21 @@ func (controller *TodoControllerGin) UpdateStatusTodo() func(c *gin.Context) {
 
 func (controller *TodoControllerGin) GetAllStatusTodo() func(c *gin.Context) {
 	return func(c *gin.Context) {
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
 		allStatusTodo, usecaseErr, serverErr := controller.todoUsecase.GetAllStatusTodo()
 		if serverErr != nil {
 			fmt.Println(serverErr)
@@ -388,7 +592,31 @@ func (controller *TodoControllerGin) GetStatusTodo() func(c *gin.Context) {
 			return
 		}
 
-		statusTodoFound, usecaseErr, serverErr := controller.todoUsecase.GetStatusTodo(id)
+		// get user id
+		userIdValue, exists := c.Get(middlewares.UserId)
+		if !exists {
+			fmt.Println("need user id for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		userId := userIdValue.(int64)
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
+		statusTodoFound, usecaseErr, serverErr := controller.todoUsecase.GetStatusTodo(userId, id)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
@@ -420,7 +648,31 @@ func (controller *TodoControllerGin) DeleteStatusTodo() func(c *gin.Context) {
 			return
 		}
 
-		usecaseErr, serverErr := controller.todoUsecase.DeleteStatusTodo(id)
+		// get user id
+		userIdValue, exists := c.Get(middlewares.UserId)
+		if !exists {
+			fmt.Println("need user id for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		userId := userIdValue.(int64)
+
+		// get level access
+		levelAccessValue, exists := c.Get(middlewares.LevelAccess)
+		if !exists {
+			fmt.Println("need level access for create status todo")
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			return
+		}
+		levelAccess := levelAccessValue.(models.LevelAccess)
+
+		// check authorization
+		if levelAccess < models.BasicLevelAccess {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "you don't have authorization"})
+			return
+		}
+
+		usecaseErr, serverErr := controller.todoUsecase.DeleteStatusTodo(userId, id)
 		if serverErr != nil {
 			fmt.Println(serverErr)
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})

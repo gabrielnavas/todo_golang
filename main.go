@@ -9,6 +9,7 @@ import (
 	"api/modules/users/infra/hashpassword"
 	"api/modules/users/infra/repositories"
 	tokenjwt "api/modules/users/infra/token"
+	"api/modules/users/middlewares"
 	"api/modules/users/usecases"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO: refatorar essa main em pequenas funcoes
 func main() {
 	// env
 	env, err := env.NewEnvironment()
@@ -38,10 +40,10 @@ func main() {
 	defer db.Close()
 
 	// routers
-	router := gin.Default()
+	routerPublic := gin.Default()
 
 	//cors
-	router.Use(cors.New(cors.Config{
+	routerPublic.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "DELETE", "PUT", "PATCH"},
 		AllowHeaders:     []string{"*"},
@@ -53,19 +55,22 @@ func main() {
 		MaxAge: 12 * time.Hour,
 	}))
 
+	// auth secret key
+	secretKey := env.TokenAuthSecretKey
+
 	{
-		// users
+		// users routes public
 		userRepository := repositories.NewUserRepository(db)
 		hashPassword := hashpassword.NewHashPassword()
 		userUsecase := usecases.NewUserUsecase(userRepository, hashPassword)
 		userController := controllers.NewUserController(userUsecase)
 
-		secretKey := env.TokenAuthSecretKey
-		tokenJwtMaker, err := tokenjwt.NewJWTMaker(secretKey)
+		JWTMaker, err := tokenjwt.NewJWTMaker(secretKey)
 		if err != nil {
 			panic(err)
 		}
-		loginUsecase := usecases.NewTokenLoginUsecase(userRepository, hashPassword, tokenJwtMaker)
+		tokenManager := usecases.NewTokenManager(JWTMaker)
+		loginUsecase := usecases.NewTokenLoginUsecase(userRepository, hashPassword, tokenManager)
 		loginController := controllers.NewLoginController(loginUsecase)
 
 		// create user genesis
@@ -75,45 +80,70 @@ func main() {
 			panic(err)
 		}
 
-		router.POST("/users", userController.CreateUser())
-		router.PUT("/users/:id", userController.UpdateUser())
-		router.GET("/users/:id", userController.GetUser())
-		router.GET("/users", userController.GetAllUser())
-		router.DELETE("/users/:id", userController.DeleteUser())
-		router.POST("/users/change_password/:id", userController.ChangePassword())
-		router.PATCH("/users/photo/:id", userController.UpdatePhotoUser())
-		router.DELETE("/users/photo/:id", userController.DeletePhotoUser())
-		router.GET("/users/photo/:id", userController.GetPhotoUser())
-		router.POST("/users/login", loginController.Login())
+		routerPublic.POST("/users", userController.CreateUser())
+
+		// login routes private
+		routerPublic.POST("/users/login", loginController.Login())
+
+		{
+			// users routes private
+			JWTMaker, err := tokenjwt.NewJWTMaker(secretKey)
+			if err != nil {
+				panic(err)
+			}
+			tokenManager := usecases.NewTokenManager(JWTMaker)
+			authMiddleware := middlewares.NewAuthorizationMiddleware(tokenManager)
+			userRouterPrivate := routerPublic.Group("/")
+			userRouterPrivate.Use(authMiddleware.Authorize())
+
+			userRouterPrivate.PUT("/users/:id", userController.UpdateUser())
+			userRouterPrivate.GET("/users/:id", userController.GetUser())
+			userRouterPrivate.GET("/users", userController.GetAllUser())
+			userRouterPrivate.DELETE("/users/:id", userController.DeleteUser())
+			userRouterPrivate.POST("/users/change_password/:id", userController.ChangePassword())
+			userRouterPrivate.PATCH("/users/photo/:id", userController.UpdatePhotoUser())
+			userRouterPrivate.DELETE("/users/photo/:id", userController.DeletePhotoUser())
+			userRouterPrivate.GET("/users/photo/:id", userController.GetPhotoUser())
+
+		}
 	}
 
 	{
-		// todos
+		// todos routes private
+		JWTMaker, err := tokenjwt.NewJWTMaker(secretKey)
+		if err != nil {
+			panic(err)
+		}
+		tokenManager := usecases.NewTokenManager(JWTMaker)
+		authMiddleware := middlewares.NewAuthorizationMiddleware(tokenManager)
+		todoRouterPrivate := routerPublic.Group("/")
+		todoRouterPrivate.Use(authMiddleware.Authorize())
+
 		todoRepository := todos.NewTodoRepository(db)
 		userRepository := repositories.NewUserRepository(db)
 		hashPassword := hashpassword.NewHashPassword()
 		userUsecase := usecases.NewUserUsecase(userRepository, hashPassword)
 		todoUsecase := todos.NewTodoUsecase(todoRepository, userUsecase)
 		controller := todos.NewTodoController(todoUsecase)
-		router.POST("/todos", controller.CreateTodo())
-		router.GET("/todos/:id", controller.GetTodo())
-		router.GET("/todos", controller.GetAllTodos())
-		router.PUT("/todos/:id", controller.UpdateTodo())
-		router.DELETE("/todos/:id", controller.DeleteTodo())
+		todoRouterPrivate.POST("/todos", controller.CreateTodo())
+		todoRouterPrivate.GET("/todos/:id", controller.GetTodo())
+		todoRouterPrivate.GET("/todos", controller.GetAllTodos())
+		todoRouterPrivate.PUT("/todos/:id", controller.UpdateTodo())
+		todoRouterPrivate.DELETE("/todos/:id", controller.DeleteTodo())
 
 		// todos image
-		router.PATCH("/todos/image/:id", controller.UpdateImageTodo())
-		router.GET("/todos/image/:id", controller.GetImageTodo())
-		router.DELETE("/todos/image/:id", controller.DeleteImageTodo())
+		todoRouterPrivate.PATCH("/todos/image/:id", controller.UpdateImageTodo())
+		todoRouterPrivate.GET("/todos/image/:id", controller.GetImageTodo())
+		todoRouterPrivate.DELETE("/todos/image/:id", controller.DeleteImageTodo())
 
 		// todo status
-		router.POST("todos/status", controller.CreateStatusTodo())
-		router.GET("todos/status/:id", controller.GetStatusTodo())
-		router.GET("todos/status", controller.GetAllStatusTodo())
-		router.PUT("todos/status/:id", controller.UpdateStatusTodo())
-		router.DELETE("todos/status/:id", controller.DeleteStatusTodo())
+		todoRouterPrivate.POST("todos/status", controller.CreateStatusTodo())
+		todoRouterPrivate.GET("todos/status/:id", controller.GetStatusTodo())
+		todoRouterPrivate.GET("todos/status", controller.GetAllStatusTodo())
+		todoRouterPrivate.PUT("todos/status/:id", controller.UpdateStatusTodo())
+		todoRouterPrivate.DELETE("todos/status/:id", controller.DeleteStatusTodo())
 	}
 
-	router.Run()
+	routerPublic.Run()
 
 }

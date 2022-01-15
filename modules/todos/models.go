@@ -39,6 +39,7 @@ type TodoDtoHttpResponse struct {
 type StatusTodo struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
+	UserId    int64     `json:"userId"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

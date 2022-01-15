@@ -18,15 +18,15 @@ type LoginUsecase interface {
 type TokenLoginUsecase struct {
 	userRepository models.UserRepository
 	hashPassword   HashPassword
-	tokenMaker     models.TokenMaker
+	tokenManager   TokenManager
 }
 
 func NewTokenLoginUsecase(
 	userRepository models.UserRepository,
 	hashPassword HashPassword,
-	tokenMaker models.TokenMaker,
+	tokenManager TokenManager,
 ) LoginUsecase {
-	return &TokenLoginUsecase{userRepository, hashPassword, tokenMaker}
+	return &TokenLoginUsecase{userRepository, hashPassword, tokenManager}
 }
 
 func (usecase *TokenLoginUsecase) Login(username string, password string) (loginResponse dto.LoginResponse, usecaseError, serverError error) {
@@ -48,7 +48,11 @@ func (usecase *TokenLoginUsecase) Login(username string, password string) (login
 		return
 	}
 
-	token, serverError := usecase.tokenMaker.CreateToken(userFound.ID, models.DurationTimeDefault)
+	token, serverError := usecase.tokenManager.CreateToken(
+		userFound.ID,
+		userFound.LevelAccess,
+		models.DurationTimeDefault,
+	)
 	if serverError != nil {
 		return
 	}

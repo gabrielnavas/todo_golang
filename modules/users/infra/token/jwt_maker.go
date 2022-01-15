@@ -3,7 +3,6 @@ package tokenjwt
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/golang-jwt/jwt"
 
@@ -24,8 +23,7 @@ func NewJWTMaker(secretKey string) (models.TokenMaker, error) {
 	return &JWTMaker{secretKey}, nil
 }
 
-func (maker *JWTMaker) CreateToken(userId int64, duration time.Duration) (string, error) {
-	payload := models.NewTokenPayload(userId, duration)
+func (maker *JWTMaker) CreateToken(payload *models.TokenPayload) (string, error) {
 	signingMethods := jwt.SigningMethodHS256 /*Método de assinatura*/
 	jwtToken := jwt.NewWithClaims(signingMethods, payload)
 	token, err := jwtToken.SignedString([]byte(maker.secretKey))

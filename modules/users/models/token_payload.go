@@ -13,19 +13,21 @@ var (
 const DurationTimeDefault = time.Hour * 24 * 7
 
 type TokenMaker interface {
-	CreateToken(userId int64, duration time.Duration) (string, error)
+	CreateToken(payload *TokenPayload) (string, error)
 	VerifyToken(token string) (*TokenPayload, error)
 }
 
 type TokenPayload struct {
-	ID        int64     `json:"id"`
-	IssuedAt  time.Time `json:"issuedAt"`
-	ExpiredAt time.Time `json:"expiredAt"`
+	UserId      int64
+	LevelAccess LevelAccess
+	IssuedAt    time.Time
+	ExpiredAt   time.Time
 }
 
-func NewTokenPayload(userId int64, duration time.Duration) *TokenPayload {
+func NewTokenPayload(userId int64, levelAccess LevelAccess, duration time.Duration) *TokenPayload {
 	payload := &TokenPayload{
 		userId,
+		levelAccess,
 		time.Now(),
 		time.Now().Add(duration),
 	}

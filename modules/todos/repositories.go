@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 )
 
 type TodoRepository interface {
-	InsertTodo(title, description string, statusID int64) (*Todo, error)
-	UpdateTodo(todoID int64, title, description string, statusTodoId int64) error
-	DeleteTodo(todoID int64) error
+	InsertTodo(title, description string, statusId int64) (*Todo, error)
+	UpdateTodo(todoId int64, title, description string, statusTodoId int64) error
+	DeleteTodo(todoId int64) error
 	GetTodo(todoID int64) (*Todo, error)
 	GetAllTodo() ([]*Todo, error)
 	CountTodoByStatus(statusTodoId int64) (int64, error)
@@ -18,12 +19,12 @@ type TodoRepository interface {
 	UpdateImageTodo(todoID int64, image *bytes.Buffer) error
 	GetImageTodo(todoID int64) (*bytes.Buffer, error)
 
-	InsertStatusTodo(name string) (*StatusTodo, error)
-	UpdateStatusTodo(id int64, name string) error
+	InsertStatusTodo(name string, userId int64) (*StatusTodo, error)
+	UpdateStatusTodo(statusId int64, name string, userId int64) error
 	GetAllStatusTodo() ([]*StatusTodo, error)
-	GetStatusTodo(statusID int64) (*StatusTodo, error)
-	GetStatusTodoByName(name string) (*StatusTodo, error)
-	DeleteStatusTodo(id int64) error
+	GetStatusTodo(userId int64, statusId int64) (*StatusTodo, error)
+	GetStatusTodoByName(userId int64, name string) (*StatusTodo, error)
+	DeleteStatusTodo(userId int64, statusID int64) error
 }
 
 type TodoRepositoryPG struct {
@@ -56,7 +57,7 @@ func (repo *TodoRepositoryPG) InsertTodo(title, description string, statusID int
 	return &todo, nil
 }
 
-func (repo *TodoRepositoryPG) UpdateTodo(todoID int64, title, description string, statusTodoId int64) error {
+func (repo *TodoRepositoryPG) UpdateTodo(todoId int64, title, description string, statusTodoId int64) error {
 	now := time.Now().UTC()
 	sqlUpdate := `
 		UPDATE todos.todo
@@ -67,7 +68,7 @@ func (repo *TodoRepositoryPG) UpdateTodo(todoID int64, title, description string
 			updated_at=$5
 		WHERE id=$1
 	`
-	args := []interface{}{todoID, title, description, statusTodoId, now}
+	args := []interface{}{todoId, title, description, statusTodoId, now}
 	_, err := repo.db.Exec(sqlUpdate, args...)
 	return err
 }
@@ -81,7 +82,7 @@ func (repo *TodoRepositoryPG) DeleteTodo(todoID int64) error {
 	return err
 }
 
-func (repo *TodoRepositoryPG) GetTodo(todoID int64) (*Todo, error) {
+func (repo *TodoRepositoryPG) GetTodo(todoId int64) (*Todo, error) {
 	var todo Todo
 	var bufferImage = []byte{}
 
@@ -91,7 +92,7 @@ func (repo *TodoRepositoryPG) GetTodo(todoID int64) (*Todo, error) {
 		WHERE id=$1;
 	`
 
-	row := repo.db.QueryRow(sqlGet, todoID)
+	row := repo.db.QueryRow(sqlGet, todoId)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -179,7 +180,7 @@ func (repo *TodoRepositoryPG) CountTodoByStatus(statusTodoId int64) (int64, erro
 	return count, nil
 }
 
-func (repo *TodoRepositoryPG) UpdateImageTodo(todoID int64, image *bytes.Buffer) error {
+func (repo *TodoRepositoryPG) UpdateImageTodo(todoId int64, image *bytes.Buffer) error {
 	var imageToArgs interface{}
 	if image == nil {
 		imageToArgs = nil
@@ -191,19 +192,19 @@ func (repo *TodoRepositoryPG) UpdateImageTodo(todoID int64, image *bytes.Buffer)
 		SET image=$2
 		WHERE id=$1;
 	`
-	args := []interface{}{todoID, imageToArgs}
+	args := []interface{}{todoId, imageToArgs}
 	_, err := repo.db.Exec(sqlUpdate, args...)
 	return err
 }
 
-func (repo *TodoRepositoryPG) GetImageTodo(todoID int64) (*bytes.Buffer, error) {
+func (repo *TodoRepositoryPG) GetImageTodo(todoId int64) (*bytes.Buffer, error) {
 	buffImage := []byte{}
 	sqlGet := `
 		SELECT image 
 		FROM todos.todo
 		WHERE id=$1;
 	`
-	row := repo.db.QueryRow(sqlGet, todoID)
+	row := repo.db.QueryRow(sqlGet, todoId)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -217,14 +218,15 @@ func (repo *TodoRepositoryPG) GetImageTodo(todoID int64) (*bytes.Buffer, error) 
 	return bytes.NewBuffer(buffImage), nil
 }
 
-func (repo *TodoRepositoryPG) InsertStatusTodo(name string) (*StatusTodo, error) {
+func (repo *TodoRepositoryPG) InsertStatusTodo(name string, userId int64) (*StatusTodo, error) {
 	var statusTodo StatusTodo
 	sqlInsert := `
-		INSERT INTO todos.todo_status (name)
-		VALUES ($1)
+		INSERT INTO todos.todo_status (name, user_id)
+		VALUES ($1, $2)
 		RETURNING id, created_at, updated_at;
 	`
-	row := repo.db.QueryRow(sqlInsert, name)
+	args := []interface{}{name, userId}
+	row := repo.db.QueryRow(sqlInsert, args...)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -234,16 +236,21 @@ func (repo *TodoRepositoryPG) InsertStatusTodo(name string) (*StatusTodo, error)
 		&statusTodo.UpdatedAt,
 	)
 	statusTodo.Name = name
+	statusTodo.UserId = userId
 	return &statusTodo, nil
 }
 
-func (repo *TodoRepositoryPG) UpdateStatusTodo(id int64, name string) error {
+func (repo *TodoRepositoryPG) UpdateStatusTodo(statusId int64, name string, userId int64) error {
 	sqlUpdate := `
 		UPDATE todos.todo_status
-		SET name=$2
-		WHERE id=$1;; 
+		SET 
+			name=$3,
+			user_id=$2
+		WHERE 
+			id=$1 AND 
+			user_id=$2; 
 	`
-	args := []interface{}{id, name}
+	args := []interface{}{statusId, userId, name}
 	_, error := repo.db.Exec(sqlUpdate, args...)
 	return error
 }
@@ -251,7 +258,7 @@ func (repo *TodoRepositoryPG) UpdateStatusTodo(id int64, name string) error {
 func (repo *TodoRepositoryPG) GetAllStatusTodo() ([]*StatusTodo, error) {
 	var allStatusTodo = make([]*StatusTodo, 0)
 	sqlGet := `
-		SELECT id, name, created_at, updated_at 
+		SELECT id, name, user_id, created_at, updated_at 
 		FROM todos.todo_status
 		ORDER BY created_at DESC;
 	`
@@ -261,7 +268,13 @@ func (repo *TodoRepositoryPG) GetAllStatusTodo() ([]*StatusTodo, error) {
 	}
 	for rows.Next() {
 		var statusTodo StatusTodo
-		err := rows.Scan(&statusTodo.ID, &statusTodo.Name, &statusTodo.CreatedAt, &statusTodo.UpdatedAt)
+		err := rows.Scan(
+			&statusTodo.ID,
+			&statusTodo.Name,
+			&statusTodo.UserId,
+			&statusTodo.CreatedAt,
+			&statusTodo.UpdatedAt,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -270,18 +283,26 @@ func (repo *TodoRepositoryPG) GetAllStatusTodo() ([]*StatusTodo, error) {
 	return allStatusTodo, nil
 }
 
-func (repo *TodoRepositoryPG) GetStatusTodo(statusID int64) (*StatusTodo, error) {
+func (repo *TodoRepositoryPG) GetStatusTodo(userId int64, statusID int64) (*StatusTodo, error) {
 	var statusTodo StatusTodo
 	sqlGet := `
-		SELECT id, name, created_at, updated_at
-		from todos.todo_status
-		where id=$1;
+		SELECT id, name, user_id, created_at, updated_at
+		FROM todos.todo_status ts
+		WHERE 
+			id=$1 AND
+			user_id=$2;
 	`
-	row := repo.db.QueryRow(sqlGet, statusID)
+	row := repo.db.QueryRow(sqlGet, statusID, userId)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
-	err := row.Scan(&statusTodo.ID, &statusTodo.Name, &statusTodo.CreatedAt, &statusTodo.UpdatedAt)
+	err := row.Scan(
+		&statusTodo.ID,
+		&statusTodo.Name,
+		&statusTodo.UserId,
+		&statusTodo.CreatedAt,
+		&statusTodo.UpdatedAt,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -291,15 +312,18 @@ func (repo *TodoRepositoryPG) GetStatusTodo(statusID int64) (*StatusTodo, error)
 	return &statusTodo, nil
 }
 
-func (repo *TodoRepositoryPG) GetStatusTodoByName(name string) (*StatusTodo, error) {
+func (repo *TodoRepositoryPG) GetStatusTodoByName(userId int64, name string) (*StatusTodo, error) {
 	var statusTodo StatusTodo
 	sqlGet := `
-		SELECT id, name, created_at, updated_at
-		FROM todos.todo_status
-		WHERE name=$1;
+		SELECT id, name, user_id, created_at, updated_at
+		FROM todos.todo_status ts
+		WHERE 
+			LOWER(name)=$1 AND
+			ts.user_id=$2;
 	`
 
-	row := repo.db.QueryRow(sqlGet, name)
+	nameLower := strings.ToLower(name)
+	row := repo.db.QueryRow(sqlGet, nameLower, userId)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -307,6 +331,7 @@ func (repo *TodoRepositoryPG) GetStatusTodoByName(name string) (*StatusTodo, err
 	err := row.Scan(
 		&statusTodo.ID,
 		&statusTodo.Name,
+		&statusTodo.UserId,
 		&statusTodo.CreatedAt,
 		&statusTodo.UpdatedAt,
 	)
@@ -320,11 +345,12 @@ func (repo *TodoRepositoryPG) GetStatusTodoByName(name string) (*StatusTodo, err
 	return &statusTodo, nil
 }
 
-func (repo *TodoRepositoryPG) DeleteStatusTodo(id int64) error {
+func (repo *TodoRepositoryPG) DeleteStatusTodo(userId int64, statusID int64) error {
 	sqlDelete := `
 		DELETE FROM todos.todo_status
-		WHERE id=$1;
+		WHERE id=$1 AND user_id=$2;
 	`
-	_, error := repo.db.Exec(sqlDelete, id)
+	args := []interface{}{statusID, userId}
+	_, error := repo.db.Exec(sqlDelete, args...)
 	return error
 }

@@ -17,10 +17,15 @@ CREATE TABLE IF NOT EXISTS users.user (
 
 CREATE TABLE IF NOT EXISTS todos.todo_status (
   id serial,
+  user_id INT,
   name VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (user_id) 
+  	REFERENCES users.user(id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS todos.todo (
