@@ -126,8 +126,7 @@ func (repo *TodoRepositoryPG) GetAllTodo() ([]*Todo, error) {
 	var todos = make([]*Todo, 0)
 	sqlGet := `
 		SELECT id, title, description, created_at, updated_at, tstts_id, image
-		FROM todos.todo
-		ORDER BY created_at DESC;
+		FROM todos.todo;
 	`
 	rows, err := repo.db.Query(sqlGet)
 	if err != nil {
@@ -259,8 +258,7 @@ func (repo *TodoRepositoryPG) GetAllStatusTodo() ([]*StatusTodo, error) {
 	var allStatusTodo = make([]*StatusTodo, 0)
 	sqlGet := `
 		SELECT id, name, user_id, created_at, updated_at 
-		FROM todos.todo_status
-		ORDER BY created_at DESC;
+		FROM todos.todo_status;
 	`
 	rows, err := repo.db.Query(sqlGet)
 	if err != nil {
