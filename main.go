@@ -144,6 +144,6 @@ func main() {
 		todoRouterPrivate.DELETE("todos/status/:id", controller.DeleteStatusTodo())
 	}
 
-	routerPublic.Run()
+	routerPublic.Run(":8080")
 
 }

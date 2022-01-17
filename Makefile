@@ -5,5 +5,5 @@ dev:
 	export DATABASE_PASSWORD=postgres && \
 	export DATABASE_DBNAME=database && \
 	export DATABASE_SSLMODE=disable && \
-	export TOKEN_AUTH_SECRET_KEY=iamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkey && \
+	export TOKEN_AUTH_SECRET_KEY=iamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkeyiamsecretkey \
 	gin go run main.go 
