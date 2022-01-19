@@ -15,7 +15,7 @@ var (
 	ErrPasswordNotEqualsPasswordConfirmation = errors.New("password is not equals password confirmation")
 	ErrUserNotFound                          = errors.New("user not found")
 	ErrPhotoNotFound                         = errors.New("photo not found")
-	ErrOldPasswordWrong                      = errors.New("old password wrong")
+	ErrOldPasswordWrong                      = errors.New("senha antiga inválida")
 	ErrAllreadyHaveUsers                     = errors.New("allready have users")
 )
 
